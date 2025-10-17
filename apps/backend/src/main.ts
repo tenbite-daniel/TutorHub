@@ -3,8 +3,8 @@ import { AppModule } from './app.module';
 import { getConnectionToken } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { ValidationPipe } from '@nestjs/common';
-import * as cookieParser from 'cookie-parser';
-import * as helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

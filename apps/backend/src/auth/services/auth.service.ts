@@ -6,7 +6,8 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User } from '../schemas/user.schema';
 import { RegisterStudentDto, RegisterTutorDto, LoginDto } from '../dto';
-import { UserRole, IUserResponse } from '../index';
+import { UserRole } from '../enums/user-role.enum';
+import { IUserResponse } from '../interfaces/user.interface';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -136,7 +137,7 @@ export class AuthService {
   }
 
   async generateTokens(user: IUserResponse): Promise<{ accessToken: string; refreshToken: string }> {
-    const payload: JwtPayload = {
+    const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
@@ -145,11 +146,11 @@ export class AuthService {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
+        expiresIn: '7d',
       }),
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
+        expiresIn: '30d',
       }),
     ]);
 
@@ -162,9 +163,9 @@ export class AuthService {
     });
   }
 
-  private transformUserResponse(user: User): IUserResponse {
+  private transformUserResponse(user: any): IUserResponse {
     return {
-      id: user._id.toString(),
+      id: user._id?.toString() || user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,

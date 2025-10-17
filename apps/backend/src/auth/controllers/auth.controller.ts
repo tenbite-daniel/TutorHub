@@ -1,12 +1,12 @@
 import { Controller, Post, Body, Res, HttpCode, HttpStatus, UseGuards, Get } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from '../services/auth.service';
 import { RegisterStudentDto, RegisterTutorDto, LoginDto } from '../dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../decorators/user.decorator';
-import { IUserResponse } from '../interfaces/user.interface';
+import type { IUserResponse } from '../interfaces/user.interface';
 
 @Controller('auth')
 export class AuthController {
