@@ -2,6 +2,7 @@ export * from './enums/user-role.enum';
 export * from './interfaces/user.interface';
 export * from './interfaces/jwt-payload.interface';
 export * from './schemas/user.schema';
+export * from './schemas/otp.schema';
 export * from './dto';
 export * from './validators/match.validator';
 export * from './services';
