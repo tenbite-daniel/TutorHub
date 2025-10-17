@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Res, HttpCode, HttpStatus, UseGuards, Get } from '@nestjs/common';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from '../services/auth.service';
 import { RegisterStudentDto, RegisterTutorDto, LoginDto } from '../dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -16,6 +17,7 @@ export class AuthController {
 
   @Post('register/student')
   @HttpCode(HttpStatus.CREATED)
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 registrations per minute
   async registerStudent(
     @Body() registerStudentDto: RegisterStudentDto,
     @Res({ passthrough: true }) response: Response,
@@ -33,6 +35,7 @@ export class AuthController {
 
   @Post('register/tutor')
   @HttpCode(HttpStatus.CREATED)
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 registrations per minute
   async registerTutor(
     @Body() registerTutorDto: RegisterTutorDto,
     @Res({ passthrough: true }) response: Response,
@@ -50,6 +53,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
@@ -88,8 +92,9 @@ export class AuthController {
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict' as const,
+      sameSite: isProduction ? 'strict' as const : 'lax' as const,
       path: '/',
+      signed: true, // Sign cookies for additional security
     };
 
     response.cookie('access_token', accessToken, {
@@ -104,11 +109,14 @@ export class AuthController {
   }
 
   private clearAuthCookies(response: Response): void {
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    
     const cookieOptions = {
       httpOnly: true,
-      secure: this.configService.get<string>('NODE_ENV') === 'production',
-      sameSite: 'strict' as const,
+      secure: isProduction,
+      sameSite: isProduction ? 'strict' as const : 'lax' as const,
       path: '/',
+      signed: true,
     };
 
     response.clearCookie('access_token', cookieOptions);
