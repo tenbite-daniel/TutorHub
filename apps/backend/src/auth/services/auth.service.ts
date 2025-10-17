@@ -1,15 +1,20 @@
 import { Injectable, ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User } from '../schemas/user.schema';
 import { RegisterStudentDto, RegisterTutorDto, LoginDto } from '../dto';
 import { UserRole, IUserResponse } from '../index';
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
+    private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async hashPassword(password: string): Promise<string> {
@@ -128,6 +133,33 @@ export class AuthService {
     }
 
     return this.transformUserResponse(user);
+  }
+
+  async generateTokens(user: IUserResponse): Promise<{ accessToken: string; refreshToken: string }> {
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+        expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
+      }),
+    ]);
+
+    return { accessToken, refreshToken };
+  }
+
+  async verifyRefreshToken(token: string): Promise<JwtPayload> {
+    return this.jwtService.verifyAsync(token, {
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+    });
   }
 
   private transformUserResponse(user: User): IUserResponse {
