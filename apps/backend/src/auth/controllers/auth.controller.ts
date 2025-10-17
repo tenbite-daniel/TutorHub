@@ -1,0 +1,117 @@
+import { Controller, Post, Body, Res, HttpCode, HttpStatus, UseGuards, Get } from '@nestjs/common';
+import { Response } from 'express';
+import { ConfigService } from '@nestjs/config';
+import { AuthService } from '../services/auth.service';
+import { RegisterStudentDto, RegisterTutorDto, LoginDto } from '../dto';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { CurrentUser } from '../decorators/user.decorator';
+import { IUserResponse } from '../interfaces/user.interface';
+
+@Controller('auth')
+export class AuthController {
+  constructor(
+    private authService: AuthService,
+    private configService: ConfigService,
+  ) {}
+
+  @Post('register/student')
+  @HttpCode(HttpStatus.CREATED)
+  async registerStudent(
+    @Body() registerStudentDto: RegisterStudentDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<{ user: IUserResponse; message: string }> {
+    const user = await this.authService.registerStudent(registerStudentDto);
+    const { accessToken, refreshToken } = await this.authService.generateTokens(user);
+
+    this.setAuthCookies(response, accessToken, refreshToken);
+
+    return {
+      user,
+      message: 'Student registered successfully',
+    };
+  }
+
+  @Post('register/tutor')
+  @HttpCode(HttpStatus.CREATED)
+  async registerTutor(
+    @Body() registerTutorDto: RegisterTutorDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<{ user: IUserResponse; message: string }> {
+    const user = await this.authService.registerTutor(registerTutorDto);
+    const { accessToken, refreshToken } = await this.authService.generateTokens(user);
+
+    this.setAuthCookies(response, accessToken, refreshToken);
+
+    return {
+      user,
+      message: 'Tutor registered successfully',
+    };
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<{ user: IUserResponse; message: string }> {
+    const user = await this.authService.login(loginDto);
+    const { accessToken, refreshToken } = await this.authService.generateTokens(user);
+
+    this.setAuthCookies(response, accessToken, refreshToken);
+
+    return {
+      user,
+      message: 'Login successful',
+    };
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async logout(@Res({ passthrough: true }) response: Response): Promise<{ message: string }> {
+    this.clearAuthCookies(response);
+
+    return {
+      message: 'Logout successful',
+    };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@CurrentUser() user: IUserResponse): Promise<{ user: IUserResponse }> {
+    return { user };
+  }
+
+  private setAuthCookies(response: Response, accessToken: string, refreshToken: string): void {
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict' as const,
+      path: '/',
+    };
+
+    response.cookie('access_token', accessToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    response.cookie('refresh_token', refreshToken, {
+      ...cookieOptions,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+  }
+
+  private clearAuthCookies(response: Response): void {
+    const cookieOptions = {
+      httpOnly: true,
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite: 'strict' as const,
+      path: '/',
+    };
+
+    response.clearCookie('access_token', cookieOptions);
+    response.clearCookie('refresh_token', cookieOptions);
+  }
+}
