@@ -1,17 +1,31 @@
-import { Injectable, ConflictException, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { User } from '../schemas/user.schema';
-import { Otp } from '../schemas/otp.schema';
-import { RegisterStudentDto, RegisterTutorDto, LoginDto, ForgotPasswordDto, VerifyOtpDto, ResetPasswordDto, ChangePasswordDto } from '../dto';
-import { EmailService } from './email.service';
-import { UserRole } from '../enums/user-role.enum';
-import { IUserResponse } from '../interfaces/user.interface';
-import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { User } from './schemas/user.schema';
+import { Otp } from './schemas/otp.schema';
+import {
+  RegisterStudentDto,
+  RegisterTutorDto,
+  LoginDto,
+  ForgotPasswordDto,
+  VerifyOtpDto,
+  ResetPasswordDto,
+  ChangePasswordDto,
+} from './dto';
+import { EmailService } from './services/email.service';
+import { UserRole } from './enums/user-role.enum';
+import { IUserResponse } from './interfaces/user.interface';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +42,10 @@ export class AuthService {
     return bcrypt.hash(password, saltRounds);
   }
 
-  async comparePasswords(plainPassword: string, hashedPassword: string): Promise<boolean> {
+  async comparePasswords(
+    plainPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
 
@@ -42,7 +59,10 @@ export class AuthService {
     return !!user;
   }
 
-  async validateUniqueFields(email: string, phoneNumber: string): Promise<void> {
+  async validateUniqueFields(
+    email: string,
+    phoneNumber: string,
+  ): Promise<void> {
     const [emailExists, phoneExists] = await Promise.all([
       this.checkEmailExists(email),
       this.checkPhoneExists(phoneNumber),
@@ -57,8 +77,11 @@ export class AuthService {
     }
   }
 
-  async registerStudent(registerStudentDto: RegisterStudentDto): Promise<IUserResponse> {
-    const { email, phoneNumber, password, confirmPassword, ...userData } = registerStudentDto;
+  async registerStudent(
+    registerStudentDto: RegisterStudentDto,
+  ): Promise<IUserResponse> {
+    const { email, phoneNumber, password, confirmPassword, ...userData } =
+      registerStudentDto;
 
     if (password !== confirmPassword) {
       throw new BadRequestException('Passwords do not match');
@@ -80,8 +103,11 @@ export class AuthService {
     return this.transformUserResponse(savedUser);
   }
 
-  async registerTutor(registerTutorDto: RegisterTutorDto): Promise<IUserResponse> {
-    const { email, phoneNumber, password, confirmPassword, ...userData } = registerTutorDto;
+  async registerTutor(
+    registerTutorDto: RegisterTutorDto,
+  ): Promise<IUserResponse> {
+    const { email, phoneNumber, password, confirmPassword, ...userData } =
+      registerTutorDto;
 
     if (password !== confirmPassword) {
       throw new BadRequestException('Passwords do not match');
@@ -103,15 +129,21 @@ export class AuthService {
     return this.transformUserResponse(savedUser);
   }
 
-  async validateUser(email: string, password: string): Promise<IUserResponse | null> {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<IUserResponse | null> {
     const user = await this.userModel.findOne({ email }).select('+password');
-    
+
     if (!user) {
       return null;
     }
 
-    const isPasswordValid = await this.comparePasswords(password, user.password);
-    
+    const isPasswordValid = await this.comparePasswords(
+      password,
+      user.password,
+    );
+
     if (!isPasswordValid) {
       return null;
     }
@@ -121,9 +153,9 @@ export class AuthService {
 
   async login(loginDto: LoginDto): Promise<IUserResponse> {
     const { email, password } = loginDto;
-    
+
     const user = await this.validateUser(email, password);
-    
+
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -133,7 +165,7 @@ export class AuthService {
 
   async findUserById(id: string): Promise<IUserResponse | null> {
     const user = await this.userModel.findById(id).lean();
-    
+
     if (!user) {
       return null;
     }
@@ -141,7 +173,9 @@ export class AuthService {
     return this.transformUserResponse(user);
   }
 
-  async generateTokens(user: IUserResponse): Promise<{ accessToken: string; refreshToken: string }> {
+  async generateTokens(
+    user: IUserResponse,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = {
       sub: user.id,
       email: user.email,
@@ -168,88 +202,98 @@ export class AuthService {
     });
   }
 
-  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{ message: string }> {
+  async forgotPassword(
+    forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
     const { email } = forgotPasswordDto;
-    
+
     const user = await this.userModel.findOne({ email });
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
     const otp = crypto.randomInt(100000, 999999).toString();
-    
+
     await this.otpModel.deleteMany({ email, type: 'password-reset' });
-    
+
     const otpDoc = new this.otpModel({
       email,
       otp,
       type: 'password-reset',
     });
     await otpDoc.save();
-    
+
     await this.emailService.sendOtpEmail(email, otp);
-    
+
     return { message: 'OTP sent to your email' };
   }
 
   async verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<{ message: string }> {
     const { email, otp } = verifyOtpDto;
-    
-    const otpDoc = await this.otpModel.findOne({ 
-      email, 
-      otp, 
-      type: 'password-reset' 
+
+    const otpDoc = await this.otpModel.findOne({
+      email,
+      otp,
+      type: 'password-reset',
     });
-    
+
     if (!otpDoc) {
       throw new BadRequestException('Invalid or expired OTP');
     }
-    
+
     return { message: 'OTP verified successfully' };
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
     const { email, password, confirmPassword } = resetPasswordDto;
-    
+
     if (password !== confirmPassword) {
       throw new BadRequestException('Passwords do not match');
     }
-    
+
     const user = await this.userModel.findOne({ email });
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    
+
     const hashedPassword = await this.hashPassword(password);
     user.password = hashedPassword;
     await user.save();
-    
+
     await this.otpModel.deleteMany({ email, type: 'password-reset' });
-    
+
     return { message: 'Password reset successfully' };
   }
 
-  async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
     const { currentPassword, newPassword, confirmPassword } = changePasswordDto;
-    
+
     if (newPassword !== confirmPassword) {
       throw new BadRequestException('Passwords do not match');
     }
-    
+
     const user = await this.userModel.findById(userId).select('+password');
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    
-    const isCurrentPasswordValid = await this.comparePasswords(currentPassword, user.password);
+
+    const isCurrentPasswordValid = await this.comparePasswords(
+      currentPassword,
+      user.password,
+    );
     if (!isCurrentPasswordValid) {
       throw new BadRequestException('Current password is incorrect');
     }
-    
+
     const hashedPassword = await this.hashPassword(newPassword);
     user.password = hashedPassword;
     await user.save();
-    
+
     return { message: 'Password changed successfully' };
   }
 

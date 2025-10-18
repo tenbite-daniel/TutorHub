@@ -1,12 +1,29 @@
-import { Controller, Post, Body, Res, HttpCode, HttpStatus, UseGuards, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Get,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
-import { AuthService } from '../services/auth.service';
-import { RegisterStudentDto, RegisterTutorDto, LoginDto, ForgotPasswordDto, VerifyOtpDto, ResetPasswordDto, ChangePasswordDto } from '../dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { CurrentUser } from '../decorators/user.decorator';
-import type { IUserResponse } from '../interfaces/user.interface';
+import { AuthService } from './auth.service';
+import {
+  RegisterStudentDto,
+  RegisterTutorDto,
+  LoginDto,
+  ForgotPasswordDto,
+  VerifyOtpDto,
+  ResetPasswordDto,
+  ChangePasswordDto,
+} from './dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { CurrentUser } from './decorators/user.decorator';
+import type { IUserResponse } from './interfaces/user.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -23,7 +40,8 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<{ user: IUserResponse; message: string }> {
     const user = await this.authService.registerStudent(registerStudentDto);
-    const { accessToken, refreshToken } = await this.authService.generateTokens(user);
+    const { accessToken, refreshToken } =
+      await this.authService.generateTokens(user);
 
     this.setAuthCookies(response, accessToken, refreshToken);
 
@@ -41,7 +59,8 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<{ user: IUserResponse; message: string }> {
     const user = await this.authService.registerTutor(registerTutorDto);
-    const { accessToken, refreshToken } = await this.authService.generateTokens(user);
+    const { accessToken, refreshToken } =
+      await this.authService.generateTokens(user);
 
     this.setAuthCookies(response, accessToken, refreshToken);
 
@@ -59,7 +78,8 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<{ user: IUserResponse; message: string }> {
     const user = await this.authService.login(loginDto);
-    const { accessToken, refreshToken } = await this.authService.generateTokens(user);
+    const { accessToken, refreshToken } =
+      await this.authService.generateTokens(user);
 
     this.setAuthCookies(response, accessToken, refreshToken);
 
@@ -72,7 +92,9 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  async logout(@Res({ passthrough: true }) response: Response): Promise<{ message: string }> {
+  async logout(
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<{ message: string }> {
     this.clearAuthCookies(response);
 
     return {
@@ -82,28 +104,36 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getProfile(@CurrentUser() user: IUserResponse): Promise<{ user: IUserResponse }> {
+  async getProfile(
+    @CurrentUser() user: IUserResponse,
+  ): Promise<{ user: IUserResponse }> {
     return { user };
   }
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 attempts per minute
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<{ message: string }> {
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
     return this.authService.forgotPassword(forgotPasswordDto);
   }
 
   @Post('verify-otp')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 attempts per minute
-  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto): Promise<{ message: string }> {
+  async verifyOtp(
+    @Body() verifyOtpDto: VerifyOtpDto,
+  ): Promise<{ message: string }> {
     return this.authService.verifyOtp(verifyOtpDto);
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 attempts per minute
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
     return this.authService.resetPassword(resetPasswordDto);
   }
 
@@ -117,13 +147,18 @@ export class AuthController {
     return this.authService.changePassword(user.id, changePasswordDto);
   }
 
-  private setAuthCookies(response: Response, accessToken: string, refreshToken: string): void {
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    
+  private setAuthCookies(
+    response: Response,
+    accessToken: string,
+    refreshToken: string,
+  ): void {
+    const isProduction =
+      this.configService.get<string>('NODE_ENV') === 'production';
+
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? 'strict' as const : 'lax' as const,
+      sameSite: isProduction ? ('strict' as const) : ('lax' as const),
       path: '/',
       signed: true, // Sign cookies for additional security
     };
@@ -140,12 +175,13 @@ export class AuthController {
   }
 
   private clearAuthCookies(response: Response): void {
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    
+    const isProduction =
+      this.configService.get<string>('NODE_ENV') === 'production';
+
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? 'strict' as const : 'lax' as const,
+      sameSite: isProduction ? ('strict' as const) : ('lax' as const),
       path: '/',
       signed: true,
     };
