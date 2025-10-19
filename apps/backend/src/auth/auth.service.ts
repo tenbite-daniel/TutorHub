@@ -13,15 +13,13 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { User } from './schemas/user.schema';
 import { Otp } from './schemas/otp.schema';
-import {
-  RegisterStudentDto,
-  RegisterTutorDto,
-  LoginDto,
-  ForgotPasswordDto,
-  VerifyOtpDto,
-  ResetPasswordDto,
-  ChangePasswordDto,
-} from './dto';
+import { RegisterStudentDto } from './dto/register-student.dto';
+import { RegisterTutorDto } from './dto/register-tutor.dto';
+import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { EmailService } from './services/email.service';
 import { UserRole } from './enums/user-role.enum';
 import { IUserResponse } from './interfaces/user.interface';
