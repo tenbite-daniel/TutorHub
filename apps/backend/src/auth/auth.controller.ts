@@ -7,8 +7,9 @@ import {
   HttpStatus,
   UseGuards,
   Get,
+  Req,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
@@ -20,6 +21,7 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { CurrentUser } from './decorators/user.decorator';
 import type { IUserResponse } from './interfaces/user.interface';
 
@@ -143,6 +145,28 @@ export class AuthController {
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<{ message: string }> {
     return this.authService.changePassword(user.id, changePasswordDto);
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuth(): Promise<void> {
+    // Initiates Google OAuth flow
+  }
+
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuthCallback(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    const user = await this.authService.googleLogin(req.user);
+    const { accessToken, refreshToken } = await this.authService.generateTokens(user);
+    
+    this.setAuthCookies(res, accessToken, refreshToken);
+    
+    // Redirect to frontend dashboard
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/dashboard/${user.role}`);
   }
 
   private setAuthCookies(

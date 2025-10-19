@@ -9,6 +9,7 @@ import { Otp, OtpSchema } from './schemas/otp.schema';
 import { AuthService } from './auth.service';
 import { EmailService } from './services/email.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 import { AuthController } from './auth.controller';
 
 @Module({
@@ -35,7 +36,7 @@ import { AuthController } from './auth.controller';
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, EmailService, JwtStrategy],
+  providers: [AuthService, EmailService, JwtStrategy, GoogleStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

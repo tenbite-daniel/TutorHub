@@ -295,6 +295,35 @@ export class AuthService {
     return { message: 'Password changed successfully' };
   }
 
+  async googleLogin(googleUser: any): Promise<IUserResponse> {
+    const { email, firstName, lastName, picture } = googleUser;
+    
+    // Check if user exists
+    let user = await this.userModel.findOne({ email });
+    
+    if (user) {
+      // Update existing user with Google info if not already set
+      if (!user.googleId) {
+        user.googleId = googleUser.id;
+        user.picture = picture;
+        await user.save();
+      }
+    } else {
+      // Create new user
+      user = new this.userModel({
+        email,
+        firstName,
+        lastName,
+        googleId: googleUser.id,
+        picture,
+        role: UserRole.STUDENT, // Default role for Google users
+      });
+      await user.save();
+    }
+    
+    return this.transformUserResponse(user);
+  }
+
   private transformUserResponse(user: any): IUserResponse {
     return {
       id: user._id?.toString() || user.id,

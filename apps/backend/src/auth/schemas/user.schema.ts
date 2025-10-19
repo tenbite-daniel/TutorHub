@@ -20,15 +20,28 @@ export class User extends Document {
   email: string;
 
   @Prop({ 
-    required: true, 
+    required: function(this: User) { 
+      return !this.googleId; 
+    }, 
     unique: true, 
+    sparse: true,
     trim: true,
     index: true 
   })
-  phoneNumber: string;
+  phoneNumber?: string;
 
-  @Prop({ required: true })
+  @Prop({ 
+    required: function(this: User) { 
+      return !this.googleId; 
+    } 
+  })
   password: string;
+
+  @Prop({ unique: true, sparse: true })
+  googleId?: string;
+
+  @Prop()
+  picture?: string;
 
   @Prop({ 
     type: String, 
