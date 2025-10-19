@@ -12,15 +12,13 @@ import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
-import {
-  RegisterStudentDto,
-  RegisterTutorDto,
-  LoginDto,
-  ForgotPasswordDto,
-  VerifyOtpDto,
-  ResetPasswordDto,
-  ChangePasswordDto,
-} from './dto';
+import { RegisterStudentDto } from './dto/register-student.dto';
+import { RegisterTutorDto } from './dto/register-tutor.dto';
+import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/user.decorator';
 import type { IUserResponse } from './interfaces/user.interface';
