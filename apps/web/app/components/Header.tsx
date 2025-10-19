@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Search, LogOut, Menu, X, User } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useSidebar } from "../contexts/SidebarContext";
 
 export default function Header() {
 	const { user, logout } = useAuth();
+	const { toggle: toggleSidebar } = useSidebar();
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const router = useRouter();
 
@@ -26,18 +28,29 @@ export default function Header() {
 	return (
 		<header className="sticky top-0 z-50 w-full border-b bg-black backdrop-blur supports-[backdrop-filter]:bg-white/60">
 			<div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-				{/* Logo */}
-				<Link
-					href="/"
-					className="flex items-center gap-2 font-bold text-xl"
-				>
-					<div className="w-8 h-8 bg-orange-500 text-white rounded-lg flex items-center justify-center">
-						T
-					</div>
-					<span className="hidden sm:inline text-blue-700">
-						TutorHub
-					</span>
-				</Link>
+				<div className="flex items-center gap-3">
+					{/* Hamburger Menu - Only show when logged in */}
+					{user && (
+						<button
+							onClick={toggleSidebar}
+							className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+						>
+							<Menu className="w-5 h-5" />
+						</button>
+					)}
+					{/* Logo */}
+					<Link
+						href="/"
+						className="flex items-center gap-2 font-bold text-xl"
+					>
+						<div className="w-8 h-8 bg-orange-500 text-white rounded-lg flex items-center justify-center">
+							T
+						</div>
+						<span className="hidden sm:inline text-blue-700">
+							TutorHub
+						</span>
+					</Link>
+				</div>
 
 				{/* Desktop Nav */}
 				<nav className="hidden md:flex items-center gap-6">

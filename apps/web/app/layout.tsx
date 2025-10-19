@@ -3,7 +3,9 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import DashboardLayout from "./components/DashboardLayout";
 import { AuthProvider } from "./contexts/AuthContext";
+import { SidebarProvider } from "./contexts/SidebarContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,11 +30,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AuthProvider>
-          <Header />
-          <main className="min-h-screen">
-            {children}
-          </main>
-          <Footer />
+          <SidebarProvider>
+            <Header />
+            <DashboardLayout>
+              {children}
+            </DashboardLayout>
+            <Footer />
+          </SidebarProvider>
         </AuthProvider>
       </body>
     </html>
