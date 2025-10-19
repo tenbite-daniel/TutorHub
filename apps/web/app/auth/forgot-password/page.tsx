@@ -18,20 +18,26 @@ export default function ForgotPasswordPage() {
 		setMessage("");
 
 		try {
-			const response = await fetch("http://localhost:3001/auth/forgot-password", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ email }),
-			});
+			const response = await fetch(
+				process.env.NEXT_PUBLIC_BACKEND_URL ||
+					"http://localhost:5000/auth/forgot-password",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ email }),
+				}
+			);
 
 			const data = await response.json();
 
 			if (response.ok) {
 				setMessage(data.message);
 				setTimeout(() => {
-					router.push(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
+					router.push(
+						`/auth/verify-otp?email=${encodeURIComponent(email)}`
+					);
 				}, 2000);
 			} else {
 				setError(data.message || "Something went wrong");
@@ -54,12 +60,16 @@ export default function ForgotPasswordPage() {
 						Forgot your password?
 					</h2>
 					<p className="mt-2 text-center text-sm text-gray-600">
-						Enter your email address and we'll send you an OTP to reset your password.
+						Enter your email address and we'll send you an OTP to
+						reset your password.
 					</p>
 				</div>
 				<form className="mt-8 space-y-6" onSubmit={handleSubmit}>
 					<div>
-						<label htmlFor="email" className="block text-sm font-medium text-gray-700">
+						<label
+							htmlFor="email"
+							className="block text-sm font-medium text-gray-700"
+						>
 							Email address
 						</label>
 						<input
@@ -75,11 +85,15 @@ export default function ForgotPasswordPage() {
 					</div>
 
 					{error && (
-						<div className="text-red-600 text-sm text-center">{error}</div>
+						<div className="text-red-600 text-sm text-center">
+							{error}
+						</div>
 					)}
 
 					{message && (
-						<div className="text-green-600 text-sm text-center">{message}</div>
+						<div className="text-green-600 text-sm text-center">
+							{message}
+						</div>
 					)}
 
 					<div>
@@ -93,7 +107,10 @@ export default function ForgotPasswordPage() {
 					</div>
 
 					<div className="text-center">
-						<Link href="/auth/login" className="text-sm text-orange-600 hover:text-orange-500">
+						<Link
+							href="/auth/login"
+							className="text-sm text-orange-600 hover:text-orange-500"
+						>
 							Back to login
 						</Link>
 					</div>

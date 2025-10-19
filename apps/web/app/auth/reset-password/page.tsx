@@ -29,8 +29,14 @@ export default function ResetPasswordPage() {
 		const hasLowerCase = /[a-z]/.test(password);
 		const hasNumbers = /\d/.test(password);
 		const hasSpecialChar = /[@$!%*?&]/.test(password);
-		
-		return minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
+
+		return (
+			minLength &&
+			hasUpperCase &&
+			hasLowerCase &&
+			hasNumbers &&
+			hasSpecialChar
+		);
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -46,19 +52,25 @@ export default function ResetPasswordPage() {
 		}
 
 		if (!validatePassword(password)) {
-			setError("Password must contain at least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character");
+			setError(
+				"Password must contain at least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character"
+			);
 			setIsLoading(false);
 			return;
 		}
 
 		try {
-			const response = await fetch("http://localhost:3001/auth/reset-password", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ email, password, confirmPassword }),
-			});
+			const response = await fetch(
+				process.env.NEXT_PUBLIC_BACKEND_URL ||
+					"http://localhost:5000/auth/reset-password",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ email, password, confirmPassword }),
+				}
+			);
 
 			const data = await response.json();
 
@@ -93,7 +105,10 @@ export default function ResetPasswordPage() {
 				</div>
 				<form className="mt-8 space-y-6" onSubmit={handleSubmit}>
 					<div>
-						<label htmlFor="password" className="block text-sm font-medium text-gray-700">
+						<label
+							htmlFor="password"
+							className="block text-sm font-medium text-gray-700"
+						>
 							New Password
 						</label>
 						<div className="mt-1 relative">
@@ -118,7 +133,10 @@ export default function ResetPasswordPage() {
 					</div>
 
 					<div>
-						<label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+						<label
+							htmlFor="confirmPassword"
+							className="block text-sm font-medium text-gray-700"
+						>
 							Confirm Password
 						</label>
 						<div className="mt-1 relative">
@@ -128,14 +146,18 @@ export default function ResetPasswordPage() {
 								type={showConfirmPassword ? "text" : "password"}
 								required
 								value={confirmPassword}
-								onChange={(e) => setConfirmPassword(e.target.value)}
+								onChange={(e) =>
+									setConfirmPassword(e.target.value)
+								}
 								className="appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
 								placeholder="Confirm new password"
 							/>
 							<button
 								type="button"
 								className="absolute inset-y-0 right-0 pr-3 flex items-center"
-								onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+								onClick={() =>
+									setShowConfirmPassword(!showConfirmPassword)
+								}
 							>
 								{showConfirmPassword ? "👁️" : "👁️‍🗨️"}
 							</button>
@@ -154,11 +176,15 @@ export default function ResetPasswordPage() {
 					</div>
 
 					{error && (
-						<div className="text-red-600 text-sm text-center">{error}</div>
+						<div className="text-red-600 text-sm text-center">
+							{error}
+						</div>
 					)}
 
 					{message && (
-						<div className="text-green-600 text-sm text-center">{message}</div>
+						<div className="text-green-600 text-sm text-center">
+							{message}
+						</div>
 					)}
 
 					<div>
@@ -172,7 +198,10 @@ export default function ResetPasswordPage() {
 					</div>
 
 					<div className="text-center">
-						<Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-500">
+						<Link
+							href="/auth/login"
+							className="text-sm text-gray-600 hover:text-gray-500"
+						>
 							Back to login
 						</Link>
 					</div>

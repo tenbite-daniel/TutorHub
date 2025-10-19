@@ -27,20 +27,26 @@ export default function VerifyOtpPage() {
 		setMessage("");
 
 		try {
-			const response = await fetch("http://localhost:3001/auth/verify-otp", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ email, otp }),
-			});
+			const response = await fetch(
+				process.env.NEXT_PUBLIC_BACKEND_URL ||
+					"http://localhost:5000/auth/verify-otp",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ email, otp }),
+				}
+			);
 
 			const data = await response.json();
 
 			if (response.ok) {
 				setMessage(data.message);
 				setTimeout(() => {
-					router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
+					router.push(
+						`/auth/reset-password?email=${encodeURIComponent(email)}`
+					);
 				}, 1500);
 			} else {
 				setError(data.message || "Invalid OTP");
@@ -54,15 +60,19 @@ export default function VerifyOtpPage() {
 
 	const handleResendOtp = async () => {
 		if (!email) return;
-		
+
 		try {
-			const response = await fetch("http://localhost:3001/auth/forgot-password", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ email }),
-			});
+			const response = await fetch(
+				process.env.NEXT_PUBLIC_BACKEND_URL ||
+					"http://localhost:5000/auth/forgot-password",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ email }),
+				}
+			);
 
 			const data = await response.json();
 			if (response.ok) {
@@ -92,7 +102,10 @@ export default function VerifyOtpPage() {
 				</div>
 				<form className="mt-8 space-y-6" onSubmit={handleSubmit}>
 					<div>
-						<label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+						<label
+							htmlFor="otp"
+							className="block text-sm font-medium text-gray-700"
+						>
 							OTP Code
 						</label>
 						<input
@@ -102,18 +115,24 @@ export default function VerifyOtpPage() {
 							required
 							maxLength={6}
 							value={otp}
-							onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+							onChange={(e) =>
+								setOtp(e.target.value.replace(/\D/g, ""))
+							}
 							className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-center text-2xl tracking-widest"
 							placeholder="000000"
 						/>
 					</div>
 
 					{error && (
-						<div className="text-red-600 text-sm text-center">{error}</div>
+						<div className="text-red-600 text-sm text-center">
+							{error}
+						</div>
 					)}
 
 					{message && (
-						<div className="text-green-600 text-sm text-center">{message}</div>
+						<div className="text-green-600 text-sm text-center">
+							{message}
+						</div>
 					)}
 
 					<div>
@@ -135,7 +154,10 @@ export default function VerifyOtpPage() {
 							Resend OTP
 						</button>
 						<div>
-							<Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-500">
+							<Link
+								href="/auth/login"
+								className="text-sm text-gray-600 hover:text-gray-500"
+							>
 								Back to login
 							</Link>
 						</div>
