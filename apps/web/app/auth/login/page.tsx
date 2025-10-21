@@ -21,7 +21,7 @@ export default function LoginPage() {
 			const response = await api.auth.login({
 				email,
 				password,
-			}) as { user: { role: string } };
+			}) as { user: { id: string; firstName: string; lastName: string; email: string; role: 'student' | 'tutor' | 'admin' } };
 
 			const { user } = response;
 			login(user);

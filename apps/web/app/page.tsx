@@ -134,6 +134,7 @@ export default function Home() {
                 {[0, 1, 2].map((offset) => {
                   const tutorIndex = (currentTutor + offset) % tutors.length;
                   const tutor = tutors[tutorIndex];
+                  if (!tutor) return null;
                   return (
                     <div key={tutor.id} className="bg-white border rounded-lg p-6 text-center">
                       <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4"></div>
