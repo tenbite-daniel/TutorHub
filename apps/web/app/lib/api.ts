@@ -92,68 +92,7 @@ async function apiRequest<T>(
 }
 
 export const api = {
-	auth: {
-		registerStudent: (data: {
-			firstName: string;
-			lastName: string;
-			email: string;
-			phoneNumber: string;
-			password: string;
-			confirmPassword: string;
-			age: number;
-		}) =>
-			apiRequest("/auth/register/student", {
-				method: "POST",
-				body: JSON.stringify(data),
-			}),
 
-		registerTutor: (data: {
-			firstName: string;
-			lastName: string;
-			email: string;
-			phoneNumber: string;
-			password: string;
-			confirmPassword: string;
-		}) =>
-			apiRequest("/auth/register/tutor", {
-				method: "POST",
-				body: JSON.stringify(data),
-			}),
-
-		login: (data: { email: string; password: string }) =>
-			apiRequest("/auth/login", {
-				method: "POST",
-				body: JSON.stringify(data),
-			}),
-
-		changePassword: (data: {
-			currentPassword: string;
-			newPassword: string;
-			confirmPassword: string;
-		}) =>
-			apiRequest("/auth/change-password", {
-				method: "POST",
-				body: JSON.stringify(data),
-			}),
-
-		forgotPassword: (data: { email: string }) =>
-			apiRequest("/auth/forgot-password", {
-				method: "POST",
-				body: JSON.stringify(data),
-			}),
-
-		verifyOtp: (data: { email: string; otp: string }) =>
-			apiRequest("/auth/verify-otp", {
-				method: "POST",
-				body: JSON.stringify(data),
-			}),
-
-		resetPassword: (data: { email: string; password: string; confirmPassword: string }) =>
-			apiRequest("/auth/reset-password", {
-				method: "POST",
-				body: JSON.stringify(data),
-			}),
-	},
 
 	enrollments: {
 		getByTutor: (tutorId: string, params?: {
@@ -188,6 +127,71 @@ export const api = {
 		update: (id: string, data: { status?: string; tutorResponse?: string }) =>
 			apiRequest(`/enrollment-applications/${id}`, {
 				method: "PATCH",
+				body: JSON.stringify(data),
+			}),
+	},
+
+	auth: {
+		registerStudent: (data: {
+			firstName: string;
+			lastName: string;
+			email: string;
+			phoneNumber: string;
+			password: string;
+			confirmPassword: string;
+			age: number;
+		}) =>
+			apiRequest("/auth/register/student", {
+				method: "POST",
+				body: JSON.stringify(data),
+			}),
+
+		registerTutor: (data: {
+			firstName: string;
+			lastName: string;
+			email: string;
+			phoneNumber: string;
+			password: string;
+			confirmPassword: string;
+		}) =>
+			apiRequest("/auth/register/tutor", {
+				method: "POST",
+				body: JSON.stringify(data),
+			}),
+
+		login: (data: { email: string; password: string }) =>
+			apiRequest("/auth/login", {
+				method: "POST",
+				body: JSON.stringify(data),
+			}),
+
+		me: () => apiRequest("/auth/me"),
+
+		changePassword: (data: {
+			currentPassword: string;
+			newPassword: string;
+			confirmPassword: string;
+		}) =>
+			apiRequest("/auth/change-password", {
+				method: "POST",
+				body: JSON.stringify(data),
+			}),
+
+		forgotPassword: (data: { email: string }) =>
+			apiRequest("/auth/forgot-password", {
+				method: "POST",
+				body: JSON.stringify(data),
+			}),
+
+		verifyOtp: (data: { email: string; otp: string }) =>
+			apiRequest("/auth/verify-otp", {
+				method: "POST",
+				body: JSON.stringify(data),
+			}),
+
+		resetPassword: (data: { email: string; password: string; confirmPassword: string }) =>
+			apiRequest("/auth/reset-password", {
+				method: "POST",
 				body: JSON.stringify(data),
 			}),
 	},
