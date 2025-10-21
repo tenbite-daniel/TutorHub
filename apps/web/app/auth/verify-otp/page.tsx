@@ -28,7 +28,7 @@ export default function VerifyOtpPage() {
 		setMessage("");
 
 		try {
-			const data = await api.auth.verifyOtp({ email, otp });
+			const data = await api.auth.verifyOtp({ email, otp }) as { message?: string };
 			setMessage(data.message || "OTP verified successfully");
 			setTimeout(() => {
 				router.push(

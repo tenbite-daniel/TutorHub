@@ -40,7 +40,7 @@ export default function TutorProfilePage() {
 	useEffect(() => {
 		const fetchProfile = async () => {
 			try {
-				const data = await api.tutorProfile.get();
+				const data = await api.tutorProfile.get() as TutorProfile;
 				setProfile(data);
 				setFormData(data);
 				setIsEditing(false);

@@ -61,7 +61,7 @@ export default function ResetPasswordPage() {
 		}
 
 		try {
-			const data = await api.auth.resetPassword({ email, password, confirmPassword });
+			const data = await api.auth.resetPassword({ email, password, confirmPassword }) as { message?: string };
 			setMessage(data.message || "Password reset successfully");
 			setTimeout(() => {
 				router.push("/auth/login");

@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
 		setMessage("");
 
 		try {
-			const data = await api.auth.forgotPassword({ email });
+			const data = await api.auth.forgotPassword({ email }) as { message?: string };
 			setMessage(data.message || "OTP sent to your email");
 			setTimeout(() => {
 				router.push(
