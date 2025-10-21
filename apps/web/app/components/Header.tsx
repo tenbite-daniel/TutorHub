@@ -8,7 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useSidebar } from "../contexts/SidebarContext";
 
 export default function Header() {
-	const { user, logout } = useAuth();
+	const { user, logout, isLoading } = useAuth();
 	const { toggle: toggleSidebar } = useSidebar();
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const router = useRouter();
@@ -101,7 +101,9 @@ export default function Header() {
 
 				{/* Auth Buttons */}
 				<div className="flex items-center gap-3">
-					{user ? (
+					{isLoading ? (
+						<div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+					) : user ? (
 						<>
 							<div className="flex items-center gap-2">
 								<div className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center">

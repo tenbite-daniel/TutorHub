@@ -25,12 +25,12 @@ interface MenuItem {
 }
 
 export default function Sidebar() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const { isOpen, close } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
 
-  if (!user) return null;
+  if (isLoading || !user) return null;
 
   const handleLogout = () => {
     logout();
