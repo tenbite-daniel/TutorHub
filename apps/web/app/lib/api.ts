@@ -92,45 +92,6 @@ async function apiRequest<T>(
 }
 
 export const api = {
-
-
-	enrollments: {
-		getByTutor: (tutorId: string, params?: {
-			page?: number;
-			limit?: number;
-			status?: string;
-		}) => {
-			const searchParams = new URLSearchParams();
-			if (params?.page) searchParams.set('page', params.page.toString());
-			if (params?.limit) searchParams.set('limit', params.limit.toString());
-			if (params?.status) searchParams.set('status', params.status);
-			
-			const query = searchParams.toString();
-			return apiRequest(`/enrollment-applications/tutor/${tutorId}${query ? `?${query}` : ''}`);
-		},
-
-		create: (data: {
-			tutorId: string;
-			studentId: string;
-			subject: string;
-			grade: string;
-			preferredSchedule: string;
-			goals: string;
-			experience?: string;
-			additionalNotes?: string;
-		}) =>
-			apiRequest("/enrollment-applications", {
-				method: "POST",
-				body: JSON.stringify(data),
-			}),
-
-		update: (id: string, data: { status?: string; tutorResponse?: string }) =>
-			apiRequest(`/enrollment-applications/${id}`, {
-				method: "PATCH",
-				body: JSON.stringify(data),
-			}),
-	},
-
 	auth: {
 		registerStudent: (data: {
 			firstName: string;
@@ -165,8 +126,6 @@ export const api = {
 				body: JSON.stringify(data),
 			}),
 
-		me: () => apiRequest("/auth/me"),
-
 		changePassword: (data: {
 			currentPassword: string;
 			newPassword: string;
@@ -192,6 +151,43 @@ export const api = {
 		resetPassword: (data: { email: string; password: string; confirmPassword: string }) =>
 			apiRequest("/auth/reset-password", {
 				method: "POST",
+				body: JSON.stringify(data),
+			}),
+	},
+
+	enrollments: {
+		getByTutor: (tutorId: string, params?: {
+			page?: number;
+			limit?: number;
+			status?: string;
+		}) => {
+			const searchParams = new URLSearchParams();
+			if (params?.page) searchParams.set('page', params.page.toString());
+			if (params?.limit) searchParams.set('limit', params.limit.toString());
+			if (params?.status) searchParams.set('status', params.status);
+			
+			const query = searchParams.toString();
+			return apiRequest(`/enrollment-applications/tutor/${tutorId}${query ? `?${query}` : ''}`);
+		},
+
+		create: (data: {
+			tutorId: string;
+			studentId: string;
+			subject: string;
+			grade: string;
+			preferredSchedule: string;
+			goals: string;
+			experience?: string;
+			additionalNotes?: string;
+		}) =>
+			apiRequest("/enrollment-applications", {
+				method: "POST",
+				body: JSON.stringify(data),
+			}),
+
+		update: (id: string, data: { status?: string; tutorResponse?: string }) =>
+			apiRequest(`/enrollment-applications/${id}`, {
+				method: "PATCH",
 				body: JSON.stringify(data),
 			}),
 	},

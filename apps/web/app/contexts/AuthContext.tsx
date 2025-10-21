@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { api } from '../lib/api';
 
 interface User {
   id: string;
@@ -25,22 +24,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check authentication status with backend
-    const checkAuth = async () => {
-      try {
-        const response = await api.auth.me() as { user: User };
-        setUser(response.user);
-        localStorage.setItem('user', JSON.stringify(response.user));
-      } catch (error) {
-        // User not authenticated, clear any stored data
-        setUser(null);
-        localStorage.removeItem('user');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
+    // Check for stored user data on mount
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      // Ensure cookie is set if localStorage has user but cookie doesn't
+      document.cookie = `user=${storedUser}; path=/; max-age=${60 * 60 * 24 * 7}`;
+    }
+    setIsLoading(false);
   }, []);
 
   const login = (userData: User) => {
