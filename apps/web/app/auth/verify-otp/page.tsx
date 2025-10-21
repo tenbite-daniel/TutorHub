@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, ApiError } from "../../lib/api";
 
-export default function VerifyOtpPage() {
+function VerifyOtpForm() {
 	const [otp, setOtp] = useState("");
 	const [email, setEmail] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
@@ -141,5 +141,13 @@ export default function VerifyOtpPage() {
 				</form>
 			</div>
 		</div>
+	);
+}
+
+export default function VerifyOtpPage() {
+	return (
+		<Suspense fallback={<div>Loading...</div>}>
+			<VerifyOtpForm />
+		</Suspense>
 	);
 }

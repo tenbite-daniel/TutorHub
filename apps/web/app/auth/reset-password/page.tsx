@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, ApiError } from "../../lib/api";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
@@ -196,5 +196,13 @@ export default function ResetPasswordPage() {
 				</form>
 			</div>
 		</div>
+	);
+}
+
+export default function ResetPasswordPage() {
+	return (
+		<Suspense fallback={<div>Loading...</div>}>
+			<ResetPasswordForm />
+		</Suspense>
 	);
 }
