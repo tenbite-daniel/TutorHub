@@ -6,6 +6,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
+import { EnrollmentModule } from './enrollment/enrollment.module';
+import { TutorProfileModule } from './tutor-profile/tutor-profile.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -29,6 +32,9 @@ import { AuthModule } from './auth/auth.module';
       limit: 100, // 100 requests per minute globally
     }]),
     AuthModule,
+    EnrollmentModule,
+    TutorProfileModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [
