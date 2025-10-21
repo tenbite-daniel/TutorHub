@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { api, ApiError } from "../../lib/api";
 
 export default function VerifyOtpPage() {
 	const [otp, setOtp] = useState("");
@@ -27,32 +28,19 @@ export default function VerifyOtpPage() {
 		setMessage("");
 
 		try {
-			const response = await fetch(
-				process.env.NEXT_PUBLIC_BACKEND_URL ||
-					"http://localhost:5000/auth/verify-otp",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ email, otp }),
-				}
-			);
-
-			const data = await response.json();
-
-			if (response.ok) {
-				setMessage(data.message);
-				setTimeout(() => {
-					router.push(
-						`/auth/reset-password?email=${encodeURIComponent(email)}`
-					);
-				}, 1500);
-			} else {
-				setError(data.message || "Invalid OTP");
-			}
+			const data = await api.auth.verifyOtp({ email, otp });
+			setMessage(data.message || "OTP verified successfully");
+			setTimeout(() => {
+				router.push(
+					`/auth/reset-password?email=${encodeURIComponent(email)}`
+				);
+			}, 1500);
 		} catch (err) {
-			setError("Network error. Please try again.");
+			if (err instanceof ApiError) {
+				setError(err.message);
+			} else {
+				setError("Network error. Please try again.");
+			}
 		} finally {
 			setIsLoading(false);
 		}
@@ -62,27 +50,15 @@ export default function VerifyOtpPage() {
 		if (!email) return;
 
 		try {
-			const response = await fetch(
-				process.env.NEXT_PUBLIC_BACKEND_URL ||
-					"http://localhost:5000/auth/forgot-password",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ email }),
-				}
-			);
-
-			const data = await response.json();
-			if (response.ok) {
-				setMessage("New OTP sent to your email");
-				setError("");
-			} else {
-				setError(data.message || "Failed to resend OTP");
-			}
+			await api.auth.forgotPassword({ email });
+			setMessage("New OTP sent to your email");
+			setError("");
 		} catch (err) {
-			setError("Network error. Please try again.");
+			if (err instanceof ApiError) {
+				setError(err.message);
+			} else {
+				setError("Network error. Please try again.");
+			}
 		}
 	};
 

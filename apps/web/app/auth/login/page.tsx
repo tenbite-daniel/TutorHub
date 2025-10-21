@@ -21,7 +21,7 @@ export default function LoginPage() {
 			const response = await api.auth.login({
 				email,
 				password,
-			});
+			}) as { user: { role: string } };
 
 			const { user } = response;
 			login(user);

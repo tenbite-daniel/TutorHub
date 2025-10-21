@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api, ApiError } from "../../lib/api";
 
 export default function ForgotPasswordPage() {
 	const [email, setEmail] = useState("");
@@ -18,32 +19,19 @@ export default function ForgotPasswordPage() {
 		setMessage("");
 
 		try {
-			const response = await fetch(
-				process.env.NEXT_PUBLIC_BACKEND_URL ||
-					"http://localhost:5000/auth/forgot-password",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ email }),
-				}
-			);
-
-			const data = await response.json();
-
-			if (response.ok) {
-				setMessage(data.message);
-				setTimeout(() => {
-					router.push(
-						`/auth/verify-otp?email=${encodeURIComponent(email)}`
-					);
-				}, 2000);
-			} else {
-				setError(data.message || "Something went wrong");
-			}
+			const data = await api.auth.forgotPassword({ email });
+			setMessage(data.message || "OTP sent to your email");
+			setTimeout(() => {
+				router.push(
+					`/auth/verify-otp?email=${encodeURIComponent(email)}`
+				);
+			}, 2000);
 		} catch (err) {
-			setError("Network error. Please try again.");
+			if (err instanceof ApiError) {
+				setError(err.message);
+			} else {
+				setError("Network error. Please try again.");
+			}
 		} finally {
 			setIsLoading(false);
 		}

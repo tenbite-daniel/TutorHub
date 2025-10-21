@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { api, ApiError } from "../lib/api";
 
 interface Tutor {
-  id: number;
+  id: string;
   name: string;
   subjects: string[];
   grades: string[];
-  hourlyRate: number;
+  hourlyRate?: number;
 }
 
 interface EnrollmentFormProps {
@@ -34,26 +35,19 @@ export default function EnrollmentForm({ tutor, onClose }: EnrollmentFormProps) 
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/enrollment-applications', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tutorId: tutor.id,
-          studentId: user?.id,
-          ...formData
-        }),
+      await api.enrollments.create({
+        tutorId: tutor.id,
+        studentId: user?.id || '',
+        ...formData
       });
-
-      if (response.ok) {
-        alert('Application submitted successfully! The tutor will review your request.');
-        onClose();
-      } else {
-        alert('Failed to submit application. Please try again.');
-      }
+      alert('Application submitted successfully! The tutor will review your request.');
+      onClose();
     } catch (error) {
-      alert('An error occurred. Please try again.');
+      if (error instanceof ApiError) {
+        alert(`Failed to submit application: ${error.message}`);
+      } else {
+        alert('An error occurred. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -135,6 +135,24 @@ export const api = {
 				method: "POST",
 				body: JSON.stringify(data),
 			}),
+
+		forgotPassword: (data: { email: string }) =>
+			apiRequest("/auth/forgot-password", {
+				method: "POST",
+				body: JSON.stringify(data),
+			}),
+
+		verifyOtp: (data: { email: string; otp: string }) =>
+			apiRequest("/auth/verify-otp", {
+				method: "POST",
+				body: JSON.stringify(data),
+			}),
+
+		resetPassword: (data: { email: string; password: string; confirmPassword: string }) =>
+			apiRequest("/auth/reset-password", {
+				method: "POST",
+				body: JSON.stringify(data),
+			}),
 	},
 
 	enrollments: {
@@ -151,6 +169,21 @@ export const api = {
 			const query = searchParams.toString();
 			return apiRequest(`/enrollment-applications/tutor/${tutorId}${query ? `?${query}` : ''}`);
 		},
+
+		create: (data: {
+			tutorId: string;
+			studentId: string;
+			subject: string;
+			grade: string;
+			preferredSchedule: string;
+			goals: string;
+			experience?: string;
+			additionalNotes?: string;
+		}) =>
+			apiRequest("/enrollment-applications", {
+				method: "POST",
+				body: JSON.stringify(data),
+			}),
 
 		update: (id: string, data: { status?: string; tutorResponse?: string }) =>
 			apiRequest(`/enrollment-applications/${id}`, {
