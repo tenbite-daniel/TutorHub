@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Search, Filter, BookOpen } from "lucide-react";
 import TutorCard from "../components/TutorCard";
-import { api } from "../../lib/api";
+import { api } from "../lib/api";
 
 type TutorProfile = {
 	_id: string;
@@ -77,7 +77,9 @@ export default function FindTutorsPage() {
 	const filteredTutors = useMemo(() => {
 		return tutors.filter((tutor) => {
 			const matchesSearch =
-				tutor.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				tutor.fullName
+					.toLowerCase()
+					.includes(searchTerm.toLowerCase()) ||
 				tutor.subjects.some((subject) =>
 					subject.toLowerCase().includes(searchTerm.toLowerCase())
 				);
