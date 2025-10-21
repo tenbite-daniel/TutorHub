@@ -9,10 +9,10 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { isOpen, close } = useSidebar();
 
-  if (!user) {
+  if (isLoading || !user) {
     return <>{children}</>;
   }
 
