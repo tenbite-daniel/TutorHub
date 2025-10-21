@@ -1,6 +1,56 @@
 const API_BASE_URL =
 	process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
+interface TutorProfile {
+	_id: string;
+	userId: string;
+	fullName: string;
+	bio: string;
+	experience: string;
+	profileImage?: string;
+	subjects: string[];
+	grades: string[];
+	certificates?: { subject: string; certificateUrl: string }[];
+	hourlyRate?: number;
+	availability?: string[];
+	phoneNumber?: string;
+	location?: string;
+	isVerified: boolean;
+	createdAt: string;
+	updatedAt: string;
+}
+
+interface EnrollmentApplication {
+	_id: string;
+	studentId: {
+		_id: string;
+		firstName: string;
+		lastName: string;
+		email: string;
+	};
+	tutorId: number;
+	subject: string;
+	grade: string;
+	preferredSchedule: string;
+	goals: string;
+	experience?: string;
+	additionalNotes?: string;
+	status: 'pending' | 'accepted' | 'rejected';
+	tutorResponse?: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+interface PaginatedEnrollments {
+	applications: EnrollmentApplication[];
+	pagination: {
+		page: number;
+		limit: number;
+		total: number;
+		totalPages: number;
+	};
+}
+
 export class ApiError extends Error {
 	constructor(
 		public status: number,
@@ -83,6 +133,43 @@ export const api = {
 		}) =>
 			apiRequest("/auth/change-password", {
 				method: "POST",
+				body: JSON.stringify(data),
+			}),
+	},
+
+	enrollments: {
+		getByTutor: (tutorId: string, params?: {
+			page?: number;
+			limit?: number;
+			status?: string;
+		}) => {
+			const searchParams = new URLSearchParams();
+			if (params?.page) searchParams.set('page', params.page.toString());
+			if (params?.limit) searchParams.set('limit', params.limit.toString());
+			if (params?.status) searchParams.set('status', params.status);
+			
+			const query = searchParams.toString();
+			return apiRequest(`/enrollment-applications/tutor/${tutorId}${query ? `?${query}` : ''}`);
+		},
+
+		update: (id: string, data: { status?: string; tutorResponse?: string }) =>
+			apiRequest(`/enrollment-applications/${id}`, {
+				method: "PATCH",
+				body: JSON.stringify(data),
+			}),
+	},
+
+	tutorProfile: {
+		get: () => apiRequest('/tutor-profile'),
+		getAll: (): Promise<TutorProfile[]> => apiRequest('/tutor-profile/all'),
+		create: (data: any) =>
+			apiRequest('/tutor-profile', {
+				method: 'POST',
+				body: JSON.stringify(data),
+			}),
+		update: (data: any) =>
+			apiRequest('/tutor-profile', {
+				method: 'PATCH',
 				body: JSON.stringify(data),
 			}),
 	},
