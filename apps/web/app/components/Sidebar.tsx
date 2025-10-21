@@ -12,7 +12,8 @@ import {
   FileText,
   Star,
   Activity,
-  X
+  X,
+  UserCheck
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useSidebar } from "../contexts/SidebarContext";
@@ -47,6 +48,7 @@ export default function Sidebar() {
         { label: "Chat", href: "/chat", icon: MessageCircle },
       ],
       tutor: [
+        { label: "Enrollments", href: "/enrollments", icon: UserCheck },
         { label: "Chat", href: "/chat", icon: MessageCircle },
       ],
       admin: [
