@@ -34,6 +34,12 @@ export default function TutorProfilePage() {
 		phoneNumber: "",
 		location: "",
 	});
+	// Separate state for input values to allow proper comma typing
+	const [inputValues, setInputValues] = useState({
+		subjects: "",
+		grades: "",
+		availability: ""
+	});
 
 	useEffect(() => {
 		const fetchProfile = async () => {
@@ -41,6 +47,12 @@ export default function TutorProfilePage() {
 				const data = await api.tutorProfile.get() as TutorProfile;
 				setProfile(data);
 				setFormData(data);
+				// Set input values from existing data
+				setInputValues({
+					subjects: data.subjects.join(", "),
+					grades: data.grades.join(", "),
+					availability: data.availability?.join(", ") || ""
+				});
 				setIsEditing(false);
 			} catch (error) {
 				setIsEditing(true);
@@ -78,6 +90,10 @@ export default function TutorProfilePage() {
 		field: "subjects" | "grades" | "availability",
 		value: string
 	) => {
+		// Update input value immediately for smooth typing
+		setInputValues(prev => ({ ...prev, [field]: value }));
+		
+		// Parse and update form data
 		const items = value
 			.split(",")
 			.map((item) => item.trim())
@@ -283,7 +299,7 @@ export default function TutorProfilePage() {
 									<input
 										type="text"
 										required
-										value={formData.subjects.join(", ")}
+										value={inputValues.subjects}
 										onChange={(e) =>
 											handleArrayInput(
 												"subjects",
@@ -302,7 +318,7 @@ export default function TutorProfilePage() {
 									<input
 										type="text"
 										required
-										value={formData.grades.join(", ")}
+										value={inputValues.grades}
 										onChange={(e) =>
 											handleArrayInput(
 												"grades",
@@ -320,10 +336,7 @@ export default function TutorProfilePage() {
 									</label>
 									<input
 										type="text"
-										value={
-											formData.availability?.join(", ") ||
-											""
-										}
+										value={inputValues.availability}
 										onChange={(e) =>
 											handleArrayInput(
 												"availability",
@@ -384,6 +397,12 @@ export default function TutorProfilePage() {
 									onClick={() => {
 										setIsEditing(false);
 										setFormData(profile);
+										// Reset input values when canceling
+										setInputValues({
+											subjects: profile.subjects.join(", "),
+											grades: profile.grades.join(", "),
+											availability: profile.availability?.join(", ") || ""
+										});
 									}}
 									className="px-6 py-2 text-gray-600 hover:text-gray-800"
 								>
@@ -398,8 +417,8 @@ export default function TutorProfilePage() {
 								{saving
 									? "Saving..."
 									: profile
-										? "Update Profile"
-										: "Create Profile"}
+									? "Update Profile"
+									: "Create Profile"}
 							</button>
 						</div>
 					</form>
