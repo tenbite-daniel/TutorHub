@@ -9,7 +9,6 @@ import {
   Request,
   Query,
   BadRequestException,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { EnrollmentService } from './enrollment.service';
 import { CreateEnrollmentApplicationDto } from './dto/create-enrollment-application.dto';
@@ -42,15 +41,11 @@ export class EnrollmentController {
   @Roles(UserRole.TUTOR)
   @UseGuards(RolesGuard)
   findByTutor(
-    @Param('tutorId', ParseIntPipe) tutorId: number,
+    @Param('tutorId') tutorId: string,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
     @Query('status') status?: string,
   ) {
-    if (isNaN(tutorId) || !Number.isInteger(tutorId)) {
-      throw new BadRequestException('Invalid tutorId: must be a valid integer');
-    }
-    
     const parsedPage = parseInt(page, 10);
     const parsedLimit = parseInt(limit, 10);
     

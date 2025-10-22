@@ -67,9 +67,25 @@ async function apiRequest<T>(
 ): Promise<T> {
 	const url = `${API_BASE_URL}${endpoint}`;
 
+	// Get user data from localStorage for potential token
+	const userData = localStorage.getItem('user');
+	let authHeaders = {};
+	
+	// If we have user data, we can add it as a backup (though cookies should work)
+	if (userData) {
+		try {
+			const user = JSON.parse(userData);
+			// Note: In a real app, you'd store the actual JWT token, not user data
+			// This is just for debugging purposes
+		} catch (e) {
+			// Ignore parsing errors
+		}
+	}
+
 	const config: RequestInit = {
 		headers: {
 			"Content-Type": "application/json",
+			...authHeaders,
 			...options.headers,
 		},
 		credentials: "include",
@@ -86,6 +102,8 @@ async function apiRequest<T>(
 		const errorMessage = errorData?.message || response.statusText || "Request failed";
 		
 		console.error(`API Error [${response.status}]: ${errorMessage} - ${url}`);
+		console.error('Request headers:', config.headers);
+		console.error('Cookies:', document.cookie);
 		
 		throw new ApiError(response.status, errorMessage);
 	}

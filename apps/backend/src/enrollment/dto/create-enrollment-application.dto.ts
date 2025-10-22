@@ -1,9 +1,9 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateEnrollmentApplicationDto {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  tutorId: number;
+  tutorId: string;
 
   @IsString()
   @IsNotEmpty()

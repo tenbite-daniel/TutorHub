@@ -8,8 +8,8 @@ export class EnrollmentApplication {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   studentId: Types.ObjectId;
 
-  @Prop({ required: true })
-  tutorId: number;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  tutorId: Types.ObjectId;
 
   @Prop({ required: true })
   subject: string;
