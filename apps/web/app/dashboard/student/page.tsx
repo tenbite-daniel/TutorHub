@@ -2,22 +2,39 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { api } from "../../lib/api";
 
 export default function StudentDashboard() {
+	const { user } = useAuth();
 	const [stats, setStats] = useState({
-		totalCourses: 0,
+		totalTutors: 0,
 		appointmentsSubmitted: 0,
-		completedSessions: 0
+		acceptedApplications: 0
 	});
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		// Mock data - replace with actual API calls
-		setStats({
-			totalCourses: 5,
-			appointmentsSubmitted: 12,
-			completedSessions: 8
-		});
-	}, []);
+		const fetchDashboardData = async () => {
+			if (!user?.id) return;
+			
+			try {
+				// This would need a student-specific endpoint
+				// For now, we'll use placeholder data since we don't have student enrollment endpoints
+				setStats({
+					totalTutors: 0,
+					appointmentsSubmitted: 0,
+					acceptedApplications: 0
+				});
+			} catch (error) {
+				console.error('Error fetching dashboard data:', error);
+			} finally {
+				setLoading(false);
+			}
+		};
+		
+		fetchDashboardData();
+	}, [user]);
 
 	return (
 		<div className="min-h-screen bg-gray-50 p-8">
@@ -26,6 +43,11 @@ export default function StudentDashboard() {
 				
 				{/* Stats Cards */}
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+					{loading ? (
+						<div className="col-span-3 text-center py-8">
+							<div className="text-gray-500">Loading...</div>
+						</div>
+					) : (
 					<div className="bg-white p-6 rounded-lg shadow">
 						<div className="flex items-center">
 							<div className="p-3 rounded-full bg-blue-100 text-blue-600">
@@ -34,8 +56,8 @@ export default function StudentDashboard() {
 								</svg>
 							</div>
 							<div className="ml-4">
-								<p className="text-sm font-medium text-gray-600">Total Courses</p>
-								<p className="text-2xl font-bold text-gray-900">{stats.totalCourses}</p>
+								<p className="text-sm font-medium text-gray-600">Active Tutors</p>
+								<p className="text-2xl font-bold text-gray-900">{stats.totalTutors}</p>
 							</div>
 						</div>
 					</div>
@@ -60,39 +82,29 @@ export default function StudentDashboard() {
 								</svg>
 							</div>
 							<div className="ml-4">
-								<p className="text-sm font-medium text-gray-600">Completed Sessions</p>
-								<p className="text-2xl font-bold text-gray-900">{stats.completedSessions}</p>
+								<p className="text-sm font-medium text-gray-600">Accepted Applications</p>
+								<p className="text-2xl font-bold text-gray-900">{stats.acceptedApplications}</p>
 							</div>
 						</div>
 					</div>
+					)}
 				</div>
 
 				{/* Quick Links */}
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					<Link href="/courses" className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
-						<h2 className="text-xl font-semibold mb-4 text-blue-600">My Courses</h2>
-						<p className="text-gray-600">View and manage your enrolled courses</p>
-					</Link>
-					<Link href="/tutors" className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
-						<h2 className="text-xl font-semibold mb-4 text-green-600">Find Tutors</h2>
+					<Link href="/find-tutors" className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+						<h2 className="text-xl font-semibold mb-4 text-blue-600">Find Tutors</h2>
 						<p className="text-gray-600">Search for tutors in your subjects</p>
 					</Link>
-					<Link href="/sessions" className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
-						<h2 className="text-xl font-semibold mb-4 text-purple-600">My Sessions</h2>
-						<p className="text-gray-600">View upcoming tutoring sessions</p>
-					</Link>
-					<Link href="/appointments" className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
-						<h2 className="text-xl font-semibold mb-4 text-orange-600">My Appointments</h2>
-						<p className="text-gray-600">Manage your appointment requests</p>
+					<Link href="/profile/change-password" className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+						<h2 className="text-xl font-semibold mb-4 text-green-600">Change Password</h2>
+						<p className="text-gray-600">Update your account password</p>
 					</Link>
 					<Link href="/profile" className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
 						<h2 className="text-xl font-semibold mb-4 text-indigo-600">My Profile</h2>
 						<p className="text-gray-600">Update your personal information</p>
 					</Link>
-					<Link href="/settings" className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
-						<h2 className="text-xl font-semibold mb-4 text-gray-600">Settings</h2>
-						<p className="text-gray-600">Manage your account settings</p>
-					</Link>
+
 				</div>
 			</div>
 		</div>

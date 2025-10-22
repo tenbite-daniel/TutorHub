@@ -42,18 +42,28 @@ export default function ProfilePage() {
 				`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`,
 				{
 					credentials: "include",
+					headers: {
+						"Content-Type": "application/json",
+					},
 				}
 			);
 
 			if (response.ok) {
 				const data = await response.json();
+				console.log("Profile data received:", data); // Debug log
 				setProfileData({
-					firstName: data.user.firstName,
-					lastName: data.user.lastName,
-					email: data.user.email,
-					phoneNumber: data.user.phoneNumber,
+					firstName: data.user.firstName || "",
+					lastName: data.user.lastName || "",
+					email: data.user.email || "",
+					phoneNumber: data.user.phoneNumber || "",
 					age: data.user.age,
 				});
+			} else {
+				console.error("Failed to fetch profile:", response.status, response.statusText);
+				if (response.status === 401) {
+					// Token might be expired, redirect to login
+					router.push("/auth/login");
+				}
 			}
 		} catch (error) {
 			console.error("Error fetching profile:", error);

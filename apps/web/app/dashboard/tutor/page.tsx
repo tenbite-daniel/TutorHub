@@ -3,35 +3,49 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../../contexts/AuthContext";
 import { api } from "../../lib/api";
 
 export default function TutorDashboard() {
 	const router = useRouter();
+	const { user } = useAuth();
 	const [hasProfile, setHasProfile] = useState<boolean | null>(null);
 	const [stats, setStats] = useState({
 		totalStudents: 0,
 		appointmentsReceived: 0,
 		totalReviews: 0,
 	});
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		const checkProfile = async () => {
+		const fetchDashboardData = async () => {
+			if (!user?.id) return;
+			
 			try {
+				// Check if tutor has profile
 				await api.tutorProfile.get();
 				setHasProfile(true);
+				
+				// Fetch enrollment applications for this tutor
+				const enrollments = await api.enrollments.getByTutor(user.id);
+				
+				// Calculate stats
+				const acceptedApplications = enrollments.applications?.filter((app: any) => app.status === 'accepted') || [];
+				
+				setStats({
+					totalStudents: acceptedApplications.length,
+					appointmentsReceived: enrollments.applications?.length || 0,
+					totalReviews: 0,
+				});
 			} catch (error) {
 				setHasProfile(false);
+			} finally {
+				setLoading(false);
 			}
 		};
-		checkProfile();
-
-		// Mock data - replace with actual API calls
-		setStats({
-			totalStudents: 0,
-			appointmentsReceived: 0,
-			totalReviews: 0,
-		});
-	}, []);
+		
+		fetchDashboardData();
+	}, [user]);
 
 	return (
 		<div className="min-h-screen bg-gray-50 p-8">
@@ -73,6 +87,11 @@ export default function TutorDashboard() {
 
 				{/* Stats Cards */}
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+					{loading ? (
+						<div className="col-span-3 text-center py-8">
+							<div className="text-gray-500">Loading...</div>
+						</div>
+					) : (
 					<div className="bg-white p-6 rounded-lg shadow">
 						<div className="flex items-center">
 							<div className="p-3 rounded-full bg-blue-100 text-blue-600">
@@ -154,30 +173,31 @@ export default function TutorDashboard() {
 							</div>
 						</div>
 					</div>
+					)}
 				</div>
 
 				{/* Quick Links */}
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 					<Link
-						href="/dashboard/tutor/students"
+						href="/dashboard/tutor/enrollments"
 						className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
 					>
 						<h2 className="text-xl font-semibold mb-4 text-blue-600">
-							My Students
+							Student Applications
 						</h2>
 						<p className="text-gray-600">
-							Manage your student roster
+							Manage enrollment applications
 						</p>
 					</Link>
 					<Link
-						href="/dashboard/tutor/appointments"
+						href="/profile"
 						className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
 					>
 						<h2 className="text-xl font-semibold mb-4 text-orange-600">
-							Appointments
+							Account Settings
 						</h2>
 						<p className="text-gray-600">
-							Manage student appointment requests
+							Update your account information
 						</p>
 					</Link>
 					<Link
@@ -192,14 +212,14 @@ export default function TutorDashboard() {
 						</p>
 					</Link>
 					<Link
-						href="/dashboard/tutor/reviews"
+						href="/find-tutors"
 						className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
 					>
 						<h2 className="text-xl font-semibold mb-4 text-yellow-600">
-							Reviews
+							Browse Tutors
 						</h2>
 						<p className="text-gray-600">
-							View student reviews and feedback
+							See how your profile appears to students
 						</p>
 					</Link>
 				</div>

@@ -11,7 +11,7 @@ interface TutorProfile {
 	subjects: string[];
 	grades: string[];
 	certificates?: { subject: string; certificateUrl: string }[];
-	hourlyRate?: number;
+
 	availability?: string[];
 	phoneNumber?: string;
 	location?: string;

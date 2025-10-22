@@ -31,7 +31,7 @@ export class TutorProfileController {
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   create(@Request() req, @Body() createTutorProfileDto: CreateTutorProfileDto) {
-    return this.tutorProfileService.create(req.user.userId, createTutorProfileDto);
+    return this.tutorProfileService.create(req.user.id, createTutorProfileDto);
   }
 
   @Get()
@@ -39,7 +39,7 @@ export class TutorProfileController {
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   findProfile(@Request() req) {
-    return this.tutorProfileService.findByUserId(req.user.userId);
+    return this.tutorProfileService.findByUserId(req.user.id);
   }
 
   @Patch()
@@ -47,7 +47,7 @@ export class TutorProfileController {
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   update(@Request() req, @Body() updateData: Partial<CreateTutorProfileDto>) {
-    return this.tutorProfileService.update(req.user.userId, updateData);
+    return this.tutorProfileService.update(req.user.id, updateData);
   }
 
   @Post('upload-profile-image')
@@ -66,7 +66,7 @@ export class TutorProfileController {
     }
 
     const url = await this.uploadService.uploadFile(file, 'profile-images');
-    await this.tutorProfileService.update(req.user.userId, { profileImage: url });
+    await this.tutorProfileService.update(req.user.id, { profileImage: url });
     return { profileImage: url };
   }
 

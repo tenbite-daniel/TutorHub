@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Star, BookOpen, Users, Clock, CheckCircle, Plus, Minus } from "lucide-react";
+import { api } from "./lib/api";
 
-const tutors = [
-  { id: 1, name: "Sarah Johnson", subject: "Mathematics", rating: 4.9, image: "/api/placeholder/150/150", experience: "5+ years" },
-  { id: 2, name: "Michael Chen", subject: "Physics", rating: 4.8, image: "/api/placeholder/150/150", experience: "7+ years" },
-  { id: 3, name: "Emily Davis", subject: "Chemistry", rating: 4.9, image: "/api/placeholder/150/150", experience: "4+ years" },
-  { id: 4, name: "David Wilson", subject: "Biology", rating: 4.7, image: "/api/placeholder/150/150", experience: "6+ years" },
-];
+interface TutorProfile {
+  _id: string;
+  fullName: string;
+  bio: string;
+  subjects: string[];
+  experience: string;
+  profileImage?: string;
+}
 
 const faqs = [
   { question: "How do I find the right tutor?", answer: "Use our search filters to find tutors by subject, experience, rating, and availability. You can also read reviews from other students." },
@@ -21,6 +24,22 @@ const faqs = [
 export default function Home() {
   const [currentTutor, setCurrentTutor] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [tutors, setTutors] = useState<TutorProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTutors = async () => {
+      try {
+        const data = await api.tutorProfile.getAll();
+        setTutors(data.slice(0, 6)); // Show only first 6 tutors
+      } catch (error) {
+        console.error('Failed to fetch tutors:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTutors();
+  }, []);
 
   const nextTutor = () => setCurrentTutor((prev) => (prev + 1) % tutors.length);
   const prevTutor = () => setCurrentTutor((prev) => (prev - 1 + tutors.length) % tutors.length);
@@ -127,29 +146,57 @@ export default function Home() {
           </div>
           <div className="relative max-w-4xl mx-auto">
             <div className="flex items-center justify-center">
-              <button onClick={prevTutor} className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 mr-4">
+              <button 
+                onClick={prevTutor} 
+                disabled={loading || tutors.length === 0}
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 mr-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
-                {[0, 1, 2].map((offset) => {
-                  const tutorIndex = (currentTutor + offset) % tutors.length;
-                  const tutor = tutors[tutorIndex];
-                  if (!tutor) return null;
-                  return (
-                    <div key={tutor.id} className="bg-white border rounded-lg p-6 text-center">
-                      <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4"></div>
-                      <h3 className="font-semibold text-lg">{tutor.name}</h3>
-                      <p className="text-orange-500 font-medium">{tutor.subject}</p>
-                      <div className="flex items-center justify-center mt-2">
-                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="ml-1 text-sm">{tutor.rating}</span>
+                {loading ? (
+                  <div className="col-span-3 text-center py-8">
+                    <div className="text-gray-500">Loading tutors...</div>
+                  </div>
+                ) : tutors.length === 0 ? (
+                  <div className="col-span-3 text-center py-8">
+                    <div className="text-gray-500">No tutors available</div>
+                  </div>
+                ) : (
+                  [0, 1, 2].map((offset) => {
+                    const tutorIndex = (currentTutor + offset) % tutors.length;
+                    const tutor = tutors[tutorIndex];
+                    if (!tutor) return null;
+                    return (
+                      <div key={tutor._id} className="bg-white border rounded-lg p-6 text-center">
+                        <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
+                          {tutor.profileImage ? (
+                            <img src={tutor.profileImage} alt={tutor.fullName} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-orange-100 flex items-center justify-center">
+                              <span className="text-orange-500 font-semibold text-lg">
+                                {tutor.fullName.charAt(0)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="font-semibold text-lg">{tutor.fullName}</h3>
+                        <p className="text-orange-500 font-medium">{tutor.subjects[0] || 'Multiple Subjects'}</p>
+                        <div className="flex items-center justify-center mt-2">
+                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                          <span className="ml-1 text-sm">4.8</span>
+                        </div>
+                        <p className="text-gray-600 text-sm mt-1 truncate">{tutor.bio}</p>
                       </div>
-                      <p className="text-gray-600 text-sm mt-1">{tutor.experience}</p>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
-              <button onClick={nextTutor} className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 ml-4">
+              <button 
+                onClick={nextTutor} 
+                disabled={loading || tutors.length === 0}
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 ml-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <ChevronRight className="w-6 h-6" />
               </button>
             </div>
