@@ -22,7 +22,7 @@ export default function TutorDashboard() {
 		if (!user?.id) return;
 		setLoading(true);
 		try {
-			const profile = await api.tutorProfile.get();
+			const profile = await api.tutorProfile.get() as any;
 			setHasProfile(!!profile);
 		} catch (error: any) {
 			if (error.status === 404) {
@@ -46,7 +46,7 @@ export default function TutorDashboard() {
 
 			try {
 				// Check if tutor has profile
-				const profile = await api.tutorProfile.get();
+				const profile = await api.tutorProfile.get() as any;
 				setHasProfile(!!profile);
 
 				// Fetch enrollment applications for this tutor using profile ID
