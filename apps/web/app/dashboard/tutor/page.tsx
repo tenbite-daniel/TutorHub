@@ -27,14 +27,14 @@ export default function TutorDashboard() {
 				setHasProfile(true);
 				
 				// Fetch enrollment applications for this tutor
-				const enrollments = await api.enrollments.getByTutor(user.id);
+				const enrollments = await api.enrollments.getByTutor(user.id) as any;
 				
 				// Calculate stats
-				const acceptedApplications = enrollments.applications?.filter((app: any) => app.status === 'accepted') || [];
+				const acceptedApplications = enrollments?.applications?.filter((app: any) => app.status === 'accepted') || [];
 				
 				setStats({
 					totalStudents: acceptedApplications.length,
-					appointmentsReceived: enrollments.applications?.length || 0,
+					appointmentsReceived: enrollments?.applications?.length || 0,
 					totalReviews: 0,
 				});
 			} catch (error) {
