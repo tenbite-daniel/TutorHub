@@ -158,13 +158,13 @@ export const api = {
 	},
 
 	enrollments: {
-		getByStudent: () => apiRequest('/enrollment-applications/student'),
+		getByStudent: (): Promise<EnrollmentApplication[]> => apiRequest('/enrollment-applications/student'),
 		
 		getByTutor: (tutorId: string, params?: {
 			page?: number;
 			limit?: number;
 			status?: string;
-		}) => {
+		}): Promise<PaginatedEnrollments> => {
 			const searchParams = new URLSearchParams();
 			if (params?.page) searchParams.set('page', params.page.toString());
 			if (params?.limit) searchParams.set('limit', params.limit.toString());
