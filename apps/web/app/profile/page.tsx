@@ -14,7 +14,7 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
-	const { user, login } = useAuth();
+	const { user, login, isLoading: authLoading } = useAuth();
 	const router = useRouter();
 	const [isEditing, setIsEditing] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +27,9 @@ export default function ProfilePage() {
 	});
 
 	useEffect(() => {
+		// Don't redirect if auth is still loading
+		if (authLoading) return;
+		
 		if (!user) {
 			router.push("/auth/login");
 			return;
@@ -34,7 +37,7 @@ export default function ProfilePage() {
 
 		// Fetch user profile data
 		fetchProfile();
-	}, [user, router]);
+	}, [user, router, authLoading]);
 
 	const fetchProfile = async () => {
 		try {
@@ -116,6 +119,14 @@ export default function ProfilePage() {
 		fetchProfile(); // Reset to original data
 	};
 
+	if (authLoading) {
+		return (
+			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+				<div className="text-xl">Loading...</div>
+			</div>
+		);
+	}
+	
 	if (!user) {
 		return null;
 	}

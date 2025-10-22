@@ -195,7 +195,7 @@ export class AuthController {
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? ('strict' as const) : ('lax' as const),
+      sameSite: isProduction ? ('none' as const) : ('lax' as const),
       path: '/',
       signed: true, // Sign cookies for additional security
     };
@@ -218,7 +218,7 @@ export class AuthController {
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? ('strict' as const) : ('lax' as const),
+      sameSite: isProduction ? ('none' as const) : ('lax' as const),
       path: '/',
       signed: true,
     };
