@@ -35,7 +35,12 @@ export class EnrollmentService {
     const { page, limit, status } = options;
     const skip = (page - 1) * limit;
     
-    const filter: any = { tutorId: new Types.ObjectId(tutorId) };
+    const filter: any = { 
+      $or: [
+        { tutorId: tutorId },
+        { tutorId: new Types.ObjectId(tutorId) }
+      ]
+    };
     if (status && status !== 'all') {
       filter.status = status;
     }

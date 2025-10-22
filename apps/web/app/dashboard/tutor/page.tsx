@@ -49,10 +49,10 @@ export default function TutorDashboard() {
 				const profile = await api.tutorProfile.get() as any;
 				setHasProfile(!!profile);
 
-				// Fetch enrollment applications for this tutor using profile ID
-				if (profile?._id) {
+				// Fetch enrollment applications for this tutor using user ID
+				if (user?.id) {
 					const enrollments = (await api.enrollments.getByTutor(
-						profile._id
+						user.id
 					)) as any;
 
 					// Calculate stats
