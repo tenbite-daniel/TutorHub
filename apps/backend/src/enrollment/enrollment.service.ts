@@ -18,11 +18,17 @@ export class EnrollmentService {
   }
 
   async findByStudent(studentId: string) {
-    return this.enrollmentApplicationModel
-      .find({ studentId: new Types.ObjectId(studentId) })
+    const result = await this.enrollmentApplicationModel
+      .find({ 
+        $or: [
+          { studentId: studentId },
+          { studentId: new Types.ObjectId(studentId) }
+        ]
+      })
       .populate('tutorId', 'firstName lastName')
       .sort({ createdAt: -1 })
       .exec();
+    return result;
   }
 
   async findByTutor(tutorId: string, options: { page: number; limit: number; status?: string }) {
