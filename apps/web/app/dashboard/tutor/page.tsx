@@ -17,35 +17,80 @@ export default function TutorDashboard() {
 	});
 	const [loading, setLoading] = useState(true);
 
+	// Function to refresh dashboard data
+	const refreshDashboard = async () => {
+		if (!user?.id) return;
+		setLoading(true);
+		try {
+			const profile = await api.tutorProfile.get();
+			setHasProfile(!!profile);
+		} catch (error: any) {
+			console.error('Profile refresh error:', error);
+			if (error.status === 404) {
+				setHasProfile(false);
+			} else {
+				console.error('Server error during refresh:', error.message);
+				setHasProfile(false);
+			}
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	useEffect(() => {
 		const fetchDashboardData = async () => {
 			if (!user?.id) return;
-			
+
 			try {
 				// Check if tutor has profile
-				await api.tutorProfile.get();
-				setHasProfile(true);
-				
+				const profile = await api.tutorProfile.get();
+				setHasProfile(!!profile);
+
 				// Fetch enrollment applications for this tutor
-				const enrollments = await api.enrollments.getByTutor(user.id) as any;
-				
+				const enrollments = (await api.enrollments.getByTutor(
+					user.id
+				)) as any;
+
 				// Calculate stats
-				const acceptedApplications = enrollments?.applications?.filter((app: any) => app.status === 'accepted') || [];
-				
+				const acceptedApplications =
+					enrollments?.applications?.filter(
+						(app: any) => app.status === "accepted"
+					) || [];
+
 				setStats({
 					totalStudents: acceptedApplications.length,
-					appointmentsReceived: enrollments?.applications?.length || 0,
+					appointmentsReceived:
+						enrollments?.applications?.length || 0,
 					totalReviews: 0,
 				});
-			} catch (error) {
-				setHasProfile(false);
+			} catch (error: any) {
+				console.error('Profile fetch error:', error);
+				// If it's a 404, profile doesn't exist. If it's 500, there's a server error
+				if (error.status === 404) {
+					setHasProfile(false);
+				} else {
+					// For server errors, assume profile doesn't exist but log the error
+					console.error('Server error when fetching profile:', error.message);
+					setHasProfile(false);
+				}
 			} finally {
 				setLoading(false);
 			}
 		};
-		
+
 		fetchDashboardData();
 	}, [user]);
+
+	// Listen for focus events to refresh when returning to the page
+	useEffect(() => {
+		const handleFocus = () => {
+			if (hasProfile === false) {
+				refreshDashboard();
+			}
+		};
+		window.addEventListener('focus', handleFocus);
+		return () => window.removeEventListener('focus', handleFocus);
+	}, [hasProfile, user]);
 
 	return (
 		<div className="min-h-screen bg-gray-50 p-8">
@@ -181,7 +226,7 @@ export default function TutorDashboard() {
 				{/* Quick Links */}
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 					<Link
-						href="/dashboard/tutor/enrollments"
+						href="/enrollments"
 						className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
 					>
 						<h2 className="text-xl font-semibold mb-4 text-blue-600">
@@ -203,7 +248,7 @@ export default function TutorDashboard() {
 						</p>
 					</Link>
 					<Link
-						href="/dashboard/tutor/profile"
+						href="/profile"
 						className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
 					>
 						<h2 className="text-xl font-semibold mb-4 text-indigo-600">
@@ -211,17 +256,6 @@ export default function TutorDashboard() {
 						</h2>
 						<p className="text-gray-600">
 							Update your tutor profile
-						</p>
-					</Link>
-					<Link
-						href="/find-tutors"
-						className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
-					>
-						<h2 className="text-xl font-semibold mb-4 text-yellow-600">
-							Browse Tutors
-						</h2>
-						<p className="text-gray-600">
-							See how your profile appears to students
 						</p>
 					</Link>
 				</div>

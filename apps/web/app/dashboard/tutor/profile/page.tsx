@@ -63,6 +63,10 @@ export default function TutorProfilePage() {
 			setProfile(formData);
 			setIsEditing(false);
 			alert("Profile saved successfully!");
+			// Navigate back to dashboard after a short delay
+			setTimeout(() => {
+				router.push('/dashboard/tutor');
+			}, 1500);
 		} catch (error: any) {
 			alert("Error saving profile: " + error.message);
 		} finally {

@@ -168,7 +168,7 @@ export default function Home() {
                     const tutor = tutors[tutorIndex];
                     if (!tutor) return null;
                     return (
-                      <div key={tutor._id} className="bg-white border rounded-lg p-6 text-center">
+                      <div key={`${tutor._id}-${offset}`} className="bg-white border rounded-lg p-6 text-center">
                         <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
                           {tutor.profileImage ? (
                             <img src={tutor.profileImage} alt={tutor.fullName} className="w-full h-full object-cover" />

@@ -35,8 +35,14 @@ export default function ProfilePage() {
 			return;
 		}
 
-		// Fetch user profile data
-		fetchProfile();
+		// Use user data from AuthContext instead of API call
+		setProfileData({
+			firstName: user.firstName || "",
+			lastName: user.lastName || "",
+			email: user.email || "",
+			phoneNumber: (user as any).phoneNumber || "",
+			age: (user as any).age,
+		});
 	}, [user, router, authLoading]);
 
 	const fetchProfile = async () => {
@@ -116,7 +122,16 @@ export default function ProfilePage() {
 
 	const handleCancel = () => {
 		setIsEditing(false);
-		fetchProfile(); // Reset to original data
+		// Reset to original data from user context
+		if (user) {
+			setProfileData({
+				firstName: user.firstName || "",
+				lastName: user.lastName || "",
+				email: user.email || "",
+				phoneNumber: (user as any).phoneNumber || "",
+				age: (user as any).age,
+			});
+		}
 	};
 
 	if (authLoading) {

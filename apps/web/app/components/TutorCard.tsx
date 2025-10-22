@@ -7,6 +7,7 @@ import EnrollmentForm from "./EnrollmentForm";
 
 interface Tutor {
   id: string;
+  userId?: string;
   name: string;
   image?: string;
   subjects: string[];

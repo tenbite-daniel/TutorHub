@@ -26,6 +26,7 @@ type TutorProfile = {
 
 interface TutorCardProps {
 	id: string;
+	userId?: string;
 	name: string;
 	image?: string;
 	subjects: string[];
@@ -95,6 +96,7 @@ export default function FindTutorsPage() {
 
 	const transformedTutors: TutorCardProps[] = filteredTutors.map((tutor) => ({
 		id: tutor._id,
+		userId: tutor.userId,
 		name: tutor.fullName,
 		image: tutor.profileImage || "/api/placeholder/150/150",
 		subjects: tutor.subjects,

@@ -82,6 +82,12 @@ async function apiRequest<T>(
 		const errorData = await response
 			.json()
 			.catch(() => ({ message: "An error occurred" }));
+		console.error('API Error:', {
+			url,
+			status: response.status,
+			statusText: response.statusText,
+			errorData
+		});
 		throw new ApiError(
 			response.status,
 			errorData.message || "Request failed"
@@ -171,7 +177,7 @@ export const api = {
 		},
 
 		create: (data: {
-			tutorId: string;
+			tutorId: number;
 			studentId: string;
 			subject: string;
 			grade: string;
