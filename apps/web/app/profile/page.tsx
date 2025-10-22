@@ -14,7 +14,7 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
-	const { user, login } = useAuth();
+	const { user, login, isLoading: authLoading } = useAuth();
 	const router = useRouter();
 	const [isEditing, setIsEditing] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -27,14 +27,23 @@ export default function ProfilePage() {
 	});
 
 	useEffect(() => {
+		// Don't redirect if auth is still loading
+		if (authLoading) return;
+		
 		if (!user) {
 			router.push("/auth/login");
 			return;
 		}
 
-		// Fetch user profile data
-		fetchProfile();
-	}, [user, router]);
+		// Use user data from AuthContext instead of API call
+		setProfileData({
+			firstName: user.firstName || "",
+			lastName: user.lastName || "",
+			email: user.email || "",
+			phoneNumber: (user as any).phoneNumber || "",
+			age: (user as any).age,
+		});
+	}, [user, router, authLoading]);
 
 	const fetchProfile = async () => {
 		try {
@@ -42,18 +51,28 @@ export default function ProfilePage() {
 				`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`,
 				{
 					credentials: "include",
+					headers: {
+						"Content-Type": "application/json",
+					},
 				}
 			);
 
 			if (response.ok) {
 				const data = await response.json();
+				console.log("Profile data received:", data); // Debug log
 				setProfileData({
-					firstName: data.user.firstName,
-					lastName: data.user.lastName,
-					email: data.user.email,
-					phoneNumber: data.user.phoneNumber,
+					firstName: data.user.firstName || "",
+					lastName: data.user.lastName || "",
+					email: data.user.email || "",
+					phoneNumber: data.user.phoneNumber || "",
 					age: data.user.age,
 				});
+			} else {
+				console.error("Failed to fetch profile:", response.status, response.statusText);
+				if (response.status === 401) {
+					// Token might be expired, redirect to login
+					router.push("/auth/login");
+				}
 			}
 		} catch (error) {
 			console.error("Error fetching profile:", error);
@@ -103,9 +122,26 @@ export default function ProfilePage() {
 
 	const handleCancel = () => {
 		setIsEditing(false);
-		fetchProfile(); // Reset to original data
+		// Reset to original data from user context
+		if (user) {
+			setProfileData({
+				firstName: user.firstName || "",
+				lastName: user.lastName || "",
+				email: user.email || "",
+				phoneNumber: (user as any).phoneNumber || "",
+				age: (user as any).age,
+			});
+		}
 	};
 
+	if (authLoading) {
+		return (
+			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+				<div className="text-xl">Loading...</div>
+			</div>
+		);
+	}
+	
 	if (!user) {
 		return null;
 	}

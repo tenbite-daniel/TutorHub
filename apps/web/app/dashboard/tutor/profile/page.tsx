@@ -12,7 +12,6 @@ interface TutorProfile {
 	subjects: string[];
 	grades: string[];
 	certificates?: { subject: string; certificateUrl: string }[];
-	hourlyRate?: number;
 	availability?: string[];
 	phoneNumber?: string;
 	location?: string;
@@ -31,7 +30,6 @@ export default function TutorProfilePage() {
 		subjects: [],
 		grades: [],
 		certificates: [],
-		hourlyRate: 0,
 		availability: [],
 		phoneNumber: "",
 		location: "",
@@ -65,6 +63,10 @@ export default function TutorProfilePage() {
 			setProfile(formData);
 			setIsEditing(false);
 			alert("Profile saved successfully!");
+			// Navigate back to dashboard after a short delay
+			setTimeout(() => {
+				router.push('/dashboard/tutor');
+			}, 1500);
 		} catch (error: any) {
 			alert("Error saving profile: " + error.message);
 		} finally {
@@ -149,14 +151,7 @@ export default function TutorProfilePage() {
 											{profile.location || "Not provided"}
 										</p>
 									</div>
-									<div>
-										<label className="block text-sm font-medium text-gray-700">
-											Hourly Rate
-										</label>
-										<p className="mt-1 text-gray-900">
-											${profile.hourlyRate || "Not set"}
-										</p>
-									</div>
+
 								</div>
 							</div>
 
@@ -273,27 +268,7 @@ export default function TutorProfilePage() {
 									/>
 								</div>
 
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">
-										Hourly Rate ($)
-									</label>
-									<input
-										type="number"
-										min="0"
-										step="0.01"
-										value={formData.hourlyRate || ""}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												hourlyRate:
-													parseFloat(
-														e.target.value
-													) || 0,
-											}))
-										}
-										className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-									/>
-								</div>
+
 							</div>
 
 							<div className="space-y-6">

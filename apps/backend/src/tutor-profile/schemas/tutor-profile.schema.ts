@@ -29,8 +29,6 @@ export class TutorProfile {
   @Prop({ type: [{ subject: String, certificateUrl: String }] })
   certificates: { subject: string; certificateUrl: string }[];
 
-  @Prop()
-  hourlyRate: number;
 
   @Prop({ type: [String] })
   availability: string[];

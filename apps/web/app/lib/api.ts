@@ -11,7 +11,7 @@ interface TutorProfile {
 	subjects: string[];
 	grades: string[];
 	certificates?: { subject: string; certificateUrl: string }[];
-	hourlyRate?: number;
+
 	availability?: string[];
 	phoneNumber?: string;
 	location?: string;
@@ -67,9 +67,25 @@ async function apiRequest<T>(
 ): Promise<T> {
 	const url = `${API_BASE_URL}${endpoint}`;
 
+	// Get user data from localStorage for potential token
+	const userData = localStorage.getItem('user');
+	let authHeaders = {};
+	
+	// If we have user data, we can add it as a backup (though cookies should work)
+	if (userData) {
+		try {
+			const user = JSON.parse(userData);
+			// Note: In a real app, you'd store the actual JWT token, not user data
+			// This is just for debugging purposes
+		} catch (e) {
+			// Ignore parsing errors
+		}
+	}
+
 	const config: RequestInit = {
 		headers: {
 			"Content-Type": "application/json",
+			...authHeaders,
 			...options.headers,
 		},
 		credentials: "include",
@@ -82,10 +98,14 @@ async function apiRequest<T>(
 		const errorData = await response
 			.json()
 			.catch(() => ({ message: "An error occurred" }));
-		throw new ApiError(
-			response.status,
-			errorData.message || "Request failed"
-		);
+		
+		const errorMessage = errorData?.message || response.statusText || "Request failed";
+		
+		console.error(`API Error [${response.status}]: ${errorMessage} - ${url}`);
+		console.error('Request headers:', config.headers);
+		console.error('Cookies:', document.cookie);
+		
+		throw new ApiError(response.status, errorMessage);
 	}
 
 	return response.json();
@@ -156,11 +176,13 @@ export const api = {
 	},
 
 	enrollments: {
+		getByStudent: (): Promise<EnrollmentApplication[]> => apiRequest('/enrollment-applications/student'),
+		
 		getByTutor: (tutorId: string, params?: {
 			page?: number;
 			limit?: number;
 			status?: string;
-		}) => {
+		}): Promise<PaginatedEnrollments> => {
 			const searchParams = new URLSearchParams();
 			if (params?.page) searchParams.set('page', params.page.toString());
 			if (params?.limit) searchParams.set('limit', params.limit.toString());
@@ -171,7 +193,7 @@ export const api = {
 		},
 
 		create: (data: {
-			tutorId: string;
+			tutorId: number;
 			studentId: string;
 			subject: string;
 			grade: string;

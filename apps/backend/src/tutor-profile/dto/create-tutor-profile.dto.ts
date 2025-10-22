@@ -29,9 +29,6 @@ export class CreateTutorProfileDto {
   @IsOptional()
   certificates?: { subject: string; certificateUrl: string }[];
 
-  @IsNumber()
-  @IsOptional()
-  hourlyRate?: number;
 
   @IsArray()
   @IsOptional()

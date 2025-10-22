@@ -7,6 +7,7 @@ import {
   HttpStatus,
   UseGuards,
   Get,
+  Put,
   Req,
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
@@ -20,6 +21,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { CurrentUser } from './decorators/user.decorator';
@@ -110,6 +112,19 @@ export class AuthController {
     return { user };
   }
 
+  @Put('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @CurrentUser() user: IUserResponse,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ): Promise<{ user: IUserResponse; message: string }> {
+    const updatedUser = await this.authService.updateProfile(user.id, updateProfileDto);
+    return {
+      user: updatedUser,
+      message: 'Profile updated successfully',
+    };
+  }
+
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 attempts per minute
@@ -180,7 +195,7 @@ export class AuthController {
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? ('strict' as const) : ('lax' as const),
+      sameSite: isProduction ? ('none' as const) : ('lax' as const),
       path: '/',
       signed: true, // Sign cookies for additional security
     };
@@ -203,7 +218,7 @@ export class AuthController {
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? ('strict' as const) : ('lax' as const),
+      sameSite: isProduction ? ('none' as const) : ('lax' as const),
       path: '/',
       signed: true,
     };

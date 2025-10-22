@@ -8,6 +8,7 @@ import {
   UseGuards,
   Request,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { EnrollmentService } from './enrollment.service';
 import { CreateEnrollmentApplicationDto } from './dto/create-enrollment-application.dto';
@@ -45,9 +46,19 @@ export class EnrollmentController {
     @Query('limit') limit: string = '10',
     @Query('status') status?: string,
   ) {
-    return this.enrollmentService.findByTutor(+tutorId, {
-      page: +page,
-      limit: +limit,
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    
+    if (isNaN(parsedPage) || parsedPage < 1) {
+      throw new BadRequestException('Invalid page: must be a positive number');
+    }
+    if (isNaN(parsedLimit) || parsedLimit < 1) {
+      throw new BadRequestException('Invalid limit: must be a positive number');
+    }
+    
+    return this.enrollmentService.findByTutor(tutorId, {
+      page: parsedPage,
+      limit: parsedLimit,
       status,
     });
   }

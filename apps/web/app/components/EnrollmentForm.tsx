@@ -7,6 +7,7 @@ import { api, ApiError } from "../lib/api";
 
 interface Tutor {
   id: string;
+  userId?: string;
   name: string;
   subjects: string[];
   grades: string[];
@@ -36,7 +37,7 @@ export default function EnrollmentForm({ tutor, onClose }: EnrollmentFormProps) 
 
     try {
       await api.enrollments.create({
-        tutorId: tutor.id,
+        tutorId: parseInt(tutor.userId || tutor.id),
         studentId: user?.id || '',
         ...formData
       });

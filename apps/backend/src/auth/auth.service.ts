@@ -20,6 +20,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { EmailService } from './services/email.service';
 import { UserRole } from './enums/user-role.enum';
 import { IUserResponse } from './interfaces/user.interface';
@@ -322,6 +323,43 @@ export class AuthService {
     }
     
     return this.transformUserResponse(user);
+  }
+
+  async updateProfile(
+    userId: string,
+    updateData: UpdateProfileDto,
+  ): Promise<IUserResponse> {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if email is being updated and if it already exists
+    if (updateData.email && updateData.email !== user.email) {
+      const emailExists = await this.checkEmailExists(updateData.email);
+      if (emailExists) {
+        throw new ConflictException('Email already exists');
+      }
+    }
+
+    // Check if phone number is being updated and if it already exists
+    if (updateData.phoneNumber && updateData.phoneNumber !== user.phoneNumber) {
+      const phoneExists = await this.checkPhoneExists(updateData.phoneNumber);
+      if (phoneExists) {
+        throw new ConflictException('Phone number already exists');
+      }
+    }
+
+    // Update only provided fields
+    if (updateData.firstName !== undefined) user.firstName = updateData.firstName;
+    if (updateData.lastName !== undefined) user.lastName = updateData.lastName;
+    if (updateData.email !== undefined) user.email = updateData.email;
+    if (updateData.phoneNumber !== undefined) user.phoneNumber = updateData.phoneNumber;
+    if (updateData.age !== undefined) user.age = updateData.age;
+    
+    const updatedUser = await user.save();
+
+    return this.transformUserResponse(updatedUser);
   }
 
   private transformUserResponse(user: any): IUserResponse {

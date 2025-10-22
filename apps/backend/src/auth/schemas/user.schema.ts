@@ -33,7 +33,8 @@ export class User extends Document {
   @Prop({ 
     required: function(this: User) { 
       return !this.googleId; 
-    } 
+    },
+    select: false // Don't include password in queries by default
   })
   password: string;
 
