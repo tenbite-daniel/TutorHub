@@ -24,14 +24,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user data on mount
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      // Ensure cookie is set if localStorage has user but cookie doesn't
-      document.cookie = `user=${storedUser}; path=/; max-age=${60 * 60 * 24 * 7}`;
-    }
-    setIsLoading(false);
+    // Check authentication status with backend
+    const checkAuth = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/auth/me`, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+          localStorage.setItem('user', JSON.stringify(data.user));
+        } else {
+          // Clear any stale data
+          setUser(null);
+          localStorage.removeItem('user');
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setUser(null);
+        localStorage.removeItem('user');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuth();
   }, []);
 
   const login = (userData: User) => {
@@ -41,12 +62,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     document.cookie = `user=${JSON.stringify(userData)}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    // Remove cookie
-    document.cookie = 'user=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+  const logout = async () => {
+    try {
+      // Call backend logout to clear HTTP-only cookies
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('user');
+      // Remove frontend cookie
+      document.cookie = 'user=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    }
   };
 
   return (
