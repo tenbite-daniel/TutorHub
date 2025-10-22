@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateEnrollmentApplicationDto } from './dto/create-enrollment-application.dto';
 import { UpdateEnrollmentApplicationDto } from './dto/update-enrollment-application.dto';
 import { EnrollmentApplication, EnrollmentApplicationDocument } from './schemas/enrollment-application.schema';
@@ -18,7 +18,7 @@ export class EnrollmentService {
   }
 
   async findByStudent(studentId: string) {
-    return this.enrollmentApplicationModel.find({ studentId }).exec();
+    return this.enrollmentApplicationModel.find({ studentId: new Types.ObjectId(studentId) }).exec();
   }
 
   async findByTutor(tutorId: string, options: { page: number; limit: number; status?: string }) {
