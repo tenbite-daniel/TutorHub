@@ -82,16 +82,12 @@ async function apiRequest<T>(
 		const errorData = await response
 			.json()
 			.catch(() => ({ message: "An error occurred" }));
-		console.error('API Error:', {
-			url,
-			status: response.status,
-			statusText: response.statusText,
-			errorData
-		});
-		throw new ApiError(
-			response.status,
-			errorData.message || "Request failed"
-		);
+		
+		const errorMessage = errorData?.message || response.statusText || "Request failed";
+		
+		console.error(`API Error [${response.status}]: ${errorMessage} - ${url}`);
+		
+		throw new ApiError(response.status, errorMessage);
 	}
 
 	return response.json();
@@ -162,6 +158,8 @@ export const api = {
 	},
 
 	enrollments: {
+		getByStudent: () => apiRequest('/enrollment-applications/student'),
+		
 		getByTutor: (tutorId: string, params?: {
 			page?: number;
 			limit?: number;

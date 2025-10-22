@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, CheckCircle, XCircle, Filter, ChevronLeft, ChevronRight } from "lucide-react";
-import { api } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
+import { api, ApiError } from "../lib/api";
+import { Clock, CheckCircle, XCircle, User, FileText } from "lucide-react";
 
-interface Enrollment {
+interface EnrollmentApplication {
   _id: string;
   studentId: {
     _id: string;
@@ -13,262 +13,252 @@ interface Enrollment {
     lastName: string;
     email: string;
   };
+  tutorId: number;
   subject: string;
   grade: string;
+  preferredSchedule: string;
   goals: string;
+  experience?: string;
+  additionalNotes?: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  tutorResponse?: string;
   createdAt: string;
-  status: "pending" | "accepted" | "rejected";
-}
-
-interface PaginatedEnrollments {
-  applications: Enrollment[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+  updatedAt: string;
 }
 
 export default function EnrollmentsPage() {
   const { user } = useAuth();
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const itemsPerPage = 10;
+  const [applications, setApplications] = useState<EnrollmentApplication[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Mock tutor ID - in real app, this would come from user context
-  const tutorId = "1";
+  useEffect(() => {
+    if (user) {
+      fetchApplications();
+    }
+  }, [user]);
 
-  const fetchEnrollments = async () => {
+  const fetchApplications = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const response = await api.enrollments.getByTutor(tutorId, {
-        page: currentPage,
-        limit: itemsPerPage,
-        status: statusFilter === "all" ? undefined : statusFilter,
-      }) as PaginatedEnrollments;
-      
-      setEnrollments(response.applications);
-      setPagination(response.pagination);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch enrollments");
+      setIsLoading(true);
+      if (user?.role === 'student') {
+        const data = await api.enrollments.getByStudent();
+        setApplications(data);
+      } else if (user?.role === 'tutor') {
+        const data = await api.enrollments.getByTutor(user.id);
+        setApplications(data.applications || data);
+      }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else {
+        setError("Failed to load enrollments");
+      }
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchEnrollments();
-  }, [currentPage, statusFilter]);
-
-  // Calculate stats from all enrollments (not just current page)
-  const totalEnrollments = pagination.total;
-  const approvedCount = enrollments.filter(e => e.status === "accepted").length;
-  const rejectedCount = enrollments.filter(e => e.status === "rejected").length;
-
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      pending: "bg-yellow-100 text-yellow-800",
-      accepted: "bg-green-100 text-green-800",
-      rejected: "bg-red-100 text-red-800"
-    };
-    return `px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`;
+  const handleStatusUpdate = async (applicationId: string, status: string, response?: string) => {
+    try {
+      await api.enrollments.update(applicationId, { status, tutorResponse: response });
+      fetchApplications();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        alert(`Failed to update application: ${err.message}`);
+      } else {
+        alert("Failed to update application");
+      }
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Enrollments</h1>
-        
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Enrollments</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{totalEnrollments}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Approved</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{approvedCount}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Rejected</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{rejectedCount}</p>
-              </div>
-            </div>
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'accepted': return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'rejected': return <XCircle className="w-5 h-5 text-red-500" />;
+      default: return <Clock className="w-5 h-5 text-yellow-500" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'accepted': return 'bg-green-50 text-green-700 border-green-200';
+      case 'rejected': return 'bg-red-50 text-red-700 border-red-200';
+      default: return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+            ))}
           </div>
         </div>
-
-        {/* Filter */}
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">Filter by Status:</span>
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="accepted">Accepted</option>
-              <option value="rejected">Rejected</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Student
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Subject
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Applied Date
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Goals
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {loading ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 sm:px-6 py-8 text-center text-gray-500">
-                      Loading enrollments...
-                    </td>
-                  </tr>
-                ) : error ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 sm:px-6 py-8 text-center text-red-500">
-                      Error: {error}
-                    </td>
-                  </tr>
-                ) : enrollments.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 sm:px-6 py-8 text-center text-gray-500">
-                      No enrollments found
-                    </td>
-                  </tr>
-                ) : (
-                  enrollments.map((enrollment) => (
-                    <tr key={enrollment._id} className="hover:bg-gray-50">
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {enrollment.studentId.firstName} {enrollment.studentId.lastName}
-                          </div>
-                          <div className="text-sm text-gray-500">{enrollment.studentId.email}</div>
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {enrollment.subject}
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(enrollment.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span className={getStatusBadge(enrollment.status)}>
-                          {enrollment.status.charAt(0).toUpperCase() + enrollment.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                        {enrollment.goals}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-              <div className="flex-1 flex justify-between items-center">
-                <div className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{((pagination.page - 1) * pagination.limit) + 1}</span> to{" "}
-                  <span className="font-medium">
-                    {Math.min(pagination.page * pagination.limit, pagination.total)}
-                  </span>{" "}
-                  of <span className="font-medium">{pagination.total}</span> results
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1 || loading}
-                    className="relative inline-flex items-center px-2 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="text-sm text-gray-700">
-                    Page {pagination.page} of {pagination.totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
-                    disabled={currentPage === pagination.totalPages || loading}
-                    className="relative inline-flex items-center px-2 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Empty state */}
-        {!loading && !error && enrollments.length === 0 && (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No enrollments found</h3>
-            <p className="text-gray-500">
-              {statusFilter === "all" 
-                ? "You don't have any enrollment applications yet." 
-                : `No ${statusFilter} enrollments found.`}
-            </p>
-          </div>
-        )}
       </div>
+    );
+  }
+
+  const totalApplications = applications.length;
+  const acceptedApplications = applications.filter(app => app.status === 'accepted').length;
+  const rejectedApplications = applications.filter(app => app.status === 'rejected').length;
+  const pendingApplications = applications.filter(app => app.status === 'pending').length;
+
+  return (
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">
+          {user?.role === 'student' ? 'My Applications' : 'Student Applications'}
+        </h1>
+        <p className="text-gray-600 mt-1">
+          {user?.role === 'student' 
+            ? 'Track your tutoring applications' 
+            : 'Manage student enrollment requests'}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total</p>
+              <p className="text-2xl font-bold text-gray-900">{totalApplications}</p>
+            </div>
+            <FileText className="w-8 h-8 text-blue-500" />
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Accepted</p>
+              <p className="text-2xl font-bold text-green-600">{acceptedApplications}</p>
+            </div>
+            <CheckCircle className="w-8 h-8 text-green-500" />
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Rejected</p>
+              <p className="text-2xl font-bold text-red-600">{rejectedApplications}</p>
+            </div>
+            <XCircle className="w-8 h-8 text-red-500" />
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Pending</p>
+              <p className="text-2xl font-bold text-yellow-600">{pendingApplications}</p>
+            </div>
+            <Clock className="w-8 h-8 text-yellow-500" />
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
+      {applications.length === 0 ? (
+        <div className="text-center py-12">
+          <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
+          <p className="text-gray-500">
+            {user?.role === 'student' 
+              ? "You haven't submitted any applications yet." 
+              : "No students have applied to work with you yet."}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {applications.map((application) => (
+            <div key={application._id} className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {application.subject} - {application.grade}
+                  </h3>
+                  {user?.role === 'tutor' && (
+                    <p className="text-gray-600">
+                      Student: {application.studentId.firstName} {application.studentId.lastName}
+                    </p>
+                  )}
+                </div>
+                <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${getStatusColor(application.status)}`}>
+                  {getStatusIcon(application.status)}
+                  <span className="text-sm font-medium capitalize">{application.status}</span>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-1">Preferred Schedule</h4>
+                  <p className="text-gray-600 text-sm">{application.preferredSchedule}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-1">Learning Goals</h4>
+                  <p className="text-gray-600 text-sm">{application.goals}</p>
+                </div>
+              </div>
+
+              {application.experience && (
+                <div className="mb-4">
+                  <h4 className="font-medium text-gray-900 mb-1">Experience Level</h4>
+                  <p className="text-gray-600 text-sm">{application.experience}</p>
+                </div>
+              )}
+
+              {application.additionalNotes && (
+                <div className="mb-4">
+                  <h4 className="font-medium text-gray-900 mb-1">Additional Notes</h4>
+                  <p className="text-gray-600 text-sm">{application.additionalNotes}</p>
+                </div>
+              )}
+
+              {application.tutorResponse && (
+                <div className="mb-4 bg-gray-50 p-3 rounded">
+                  <h4 className="font-medium text-gray-900 mb-1">Tutor Response</h4>
+                  <p className="text-gray-600 text-sm">{application.tutorResponse}</p>
+                </div>
+              )}
+
+              {user?.role === 'tutor' && application.status === 'pending' && (
+                <div className="flex gap-2 pt-4 border-t">
+                  <button
+                    onClick={() => {
+                      const response = prompt("Add a response (optional):");
+                      handleStatusUpdate(application._id, 'accepted', response || undefined);
+                    }}
+                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => {
+                      const response = prompt("Add a response (optional):");
+                      handleStatusUpdate(application._id, 'rejected', response || undefined);
+                    }}
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
+
+              <div className="text-xs text-gray-500 mt-4">
+                Applied on {new Date(application.createdAt).toLocaleDateString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

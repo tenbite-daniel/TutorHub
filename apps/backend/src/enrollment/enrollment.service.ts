@@ -22,6 +22,10 @@ export class EnrollmentService {
   }
 
   async findByTutor(tutorId: number, options: { page: number; limit: number; status?: string }) {
+    if (isNaN(tutorId) || !Number.isInteger(tutorId)) {
+      throw new Error('Invalid tutorId: must be a valid integer');
+    }
+    
     const { page, limit, status } = options;
     const skip = (page - 1) * limit;
     

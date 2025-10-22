@@ -61,7 +61,7 @@ export default function SignUpPage() {
 					confirmPassword: formData.confirmPassword,
 				});
 			}
-			router.push("/dashboard");
+			router.push("/auth/login");
 		} catch (err) {
 			if (err instanceof ApiError) {
 				setError(err.message);

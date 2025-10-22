@@ -45,11 +45,10 @@ export default function Sidebar() {
     const roleSpecificItems: Record<string, MenuItem[]> = {
       student: [
         { label: "Find Tutor", href: "/find-tutors", icon: Search },
-        { label: "Chat", href: "/chat", icon: MessageCircle },
+        { label: "Enrollments", href: "/enrollments", icon: UserCheck },
       ],
       tutor: [
         { label: "Enrollments", href: "/enrollments", icon: UserCheck },
-        { label: "Chat", href: "/chat", icon: MessageCircle },
       ],
       admin: [
         { label: "User Management", href: "/dashboard/admin/users", icon: Users },

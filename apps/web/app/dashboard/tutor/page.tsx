@@ -25,11 +25,14 @@ export default function TutorDashboard() {
 			const profile = await api.tutorProfile.get();
 			setHasProfile(!!profile);
 		} catch (error: any) {
-			console.error('Profile refresh error:', error);
 			if (error.status === 404) {
 				setHasProfile(false);
 			} else {
-				console.error('Server error during refresh:', error.message);
+				console.error('Profile refresh error:', {
+					status: error.status,
+					message: error.message,
+					type: 'profile_refresh'
+				});
 				setHasProfile(false);
 			}
 		} finally {
@@ -46,31 +49,34 @@ export default function TutorDashboard() {
 				const profile = await api.tutorProfile.get();
 				setHasProfile(!!profile);
 
-				// Fetch enrollment applications for this tutor
-				const enrollments = (await api.enrollments.getByTutor(
-					user.id
-				)) as any;
+				// Fetch enrollment applications for this tutor using profile ID
+				if (profile?._id) {
+					const enrollments = (await api.enrollments.getByTutor(
+						profile._id
+					)) as any;
 
-				// Calculate stats
-				const acceptedApplications =
-					enrollments?.applications?.filter(
-						(app: any) => app.status === "accepted"
-					) || [];
+					// Calculate stats
+					const acceptedApplications =
+						enrollments?.applications?.filter(
+							(app: any) => app.status === "accepted"
+						) || [];
 
-				setStats({
-					totalStudents: acceptedApplications.length,
-					appointmentsReceived:
-						enrollments?.applications?.length || 0,
-					totalReviews: 0,
-				});
+					setStats({
+						totalStudents: acceptedApplications.length,
+						appointmentsReceived:
+							enrollments?.applications?.length || 0,
+						totalReviews: 0,
+					});
+				}
 			} catch (error: any) {
-				console.error('Profile fetch error:', error);
-				// If it's a 404, profile doesn't exist. If it's 500, there's a server error
 				if (error.status === 404) {
 					setHasProfile(false);
 				} else {
-					// For server errors, assume profile doesn't exist but log the error
-					console.error('Server error when fetching profile:', error.message);
+					console.error('Dashboard fetch error:', {
+						status: error.status,
+						message: error.message,
+						type: 'profile_fetch'
+					});
 					setHasProfile(false);
 				}
 			} finally {
@@ -84,12 +90,21 @@ export default function TutorDashboard() {
 	// Listen for focus events to refresh when returning to the page
 	useEffect(() => {
 		const handleFocus = () => {
-			if (hasProfile === false) {
-				refreshDashboard();
-			}
+			refreshDashboard();
 		};
 		window.addEventListener('focus', handleFocus);
 		return () => window.removeEventListener('focus', handleFocus);
+	}, [user]);
+
+	// Auto-refresh stats every 30 seconds
+	useEffect(() => {
+		if (!hasProfile) return;
+		
+		const interval = setInterval(() => {
+			refreshDashboard();
+		}, 30000);
+		
+		return () => clearInterval(interval);
 	}, [hasProfile, user]);
 
 	return (

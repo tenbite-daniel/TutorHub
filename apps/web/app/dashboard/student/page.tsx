@@ -14,26 +14,51 @@ export default function StudentDashboard() {
 	});
 	const [loading, setLoading] = useState(true);
 
-	useEffect(() => {
-		const fetchDashboardData = async () => {
-			if (!user?.id) return;
-			
-			try {
-				// This would need a student-specific endpoint
-				// For now, we'll use placeholder data since we don't have student enrollment endpoints
-				setStats({
-					totalTutors: 0,
-					appointmentsSubmitted: 0,
-					acceptedApplications: 0
-				});
-			} catch (error) {
-				console.error('Error fetching dashboard data:', error);
-			} finally {
-				setLoading(false);
-			}
-		};
+	const fetchDashboardData = async () => {
+		if (!user?.id) return;
 		
+		setLoading(true);
+		try {
+			const applications = await api.enrollments.getByStudent() as any[];
+			
+			const acceptedApplications = applications.filter(
+				(app: any) => app.status === 'accepted'
+			);
+			
+			const uniqueTutors = new Set(applications.map((app: any) => app.tutorId));
+			
+			setStats({
+				totalTutors: uniqueTutors.size,
+				appointmentsSubmitted: applications.length,
+				acceptedApplications: acceptedApplications.length
+			});
+		} catch (error) {
+			console.error('Error fetching dashboard data:', error);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	useEffect(() => {
 		fetchDashboardData();
+	}, [user]);
+
+	// Listen for focus events to refresh when returning to the page
+	useEffect(() => {
+		const handleFocus = () => {
+			fetchDashboardData();
+		};
+		window.addEventListener('focus', handleFocus);
+		return () => window.removeEventListener('focus', handleFocus);
+	}, [user]);
+
+	// Auto-refresh stats every 30 seconds
+	useEffect(() => {
+		const interval = setInterval(() => {
+			fetchDashboardData();
+		}, 30000);
+		
+		return () => clearInterval(interval);
 	}, [user]);
 
 	return (
