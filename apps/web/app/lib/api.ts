@@ -28,7 +28,7 @@ interface EnrollmentApplication {
 		lastName: string;
 		email: string;
 	};
-	tutorId: number;
+	tutorId: string;
 	subject: string;
 	grade: string;
 	preferredSchedule: string;
@@ -193,7 +193,7 @@ export const api = {
 		},
 
 		create: (data: {
-			tutorId: number;
+			tutorId: string;
 			studentId: string;
 			subject: string;
 			grade: string;

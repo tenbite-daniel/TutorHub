@@ -128,7 +128,7 @@ export default function SignUpPage() {
 							required
 							value={formData.phoneNumber}
 							onChange={handleChange}
-							placeholder="Phone number"
+							placeholder="+251976857483"
 							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
 						/>
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateEnrollmentApplicationDto } from './dto/create-enrollment-application.dto';
 import { UpdateEnrollmentApplicationDto } from './dto/update-enrollment-application.dto';
 import { EnrollmentApplication, EnrollmentApplicationDocument } from './schemas/enrollment-application.schema';
@@ -18,14 +18,29 @@ export class EnrollmentService {
   }
 
   async findByStudent(studentId: string) {
-    return this.enrollmentApplicationModel.find({ studentId }).exec();
+    const result = await this.enrollmentApplicationModel
+      .find({ 
+        $or: [
+          { studentId: studentId },
+          { studentId: new Types.ObjectId(studentId) }
+        ]
+      })
+      .populate('tutorId', 'firstName lastName')
+      .sort({ createdAt: -1 })
+      .exec();
+    return result;
   }
 
   async findByTutor(tutorId: string, options: { page: number; limit: number; status?: string }) {
     const { page, limit, status } = options;
     const skip = (page - 1) * limit;
     
-    const filter: any = { tutorId };
+    const filter: any = { 
+      $or: [
+        { tutorId: tutorId },
+        { tutorId: new Types.ObjectId(tutorId) }
+      ]
+    };
     if (status && status !== 'all') {
       filter.status = status;
     }

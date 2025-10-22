@@ -34,7 +34,8 @@ export class EnrollmentController {
   @Roles(UserRole.STUDENT)
   @UseGuards(RolesGuard)
   findByStudent(@Request() req) {
-    return this.enrollmentService.findByStudent(req.user.userId);
+    console.log('Student ID from JWT:', req.user.id);
+    return this.enrollmentService.findByStudent(req.user.id);
   }
 
   @Get('tutor/:tutorId')

@@ -37,7 +37,7 @@ export default function EnrollmentForm({ tutor, onClose }: EnrollmentFormProps) 
 
     try {
       await api.enrollments.create({
-        tutorId: parseInt(tutor.userId || tutor.id),
+        tutorId: tutor.userId || tutor.id,
         studentId: user?.id || '',
         ...formData
       });
