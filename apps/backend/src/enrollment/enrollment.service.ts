@@ -18,14 +18,18 @@ export class EnrollmentService {
   }
 
   async findByStudent(studentId: string) {
-    return this.enrollmentApplicationModel.find({ studentId: new Types.ObjectId(studentId) }).exec();
+    return this.enrollmentApplicationModel
+      .find({ studentId: new Types.ObjectId(studentId) })
+      .populate('tutorId', 'firstName lastName')
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
   async findByTutor(tutorId: string, options: { page: number; limit: number; status?: string }) {
     const { page, limit, status } = options;
     const skip = (page - 1) * limit;
     
-    const filter: any = { tutorId };
+    const filter: any = { tutorId: new Types.ObjectId(tutorId) };
     if (status && status !== 'all') {
       filter.status = status;
     }
