@@ -9,14 +9,15 @@ import { AuthModule } from './auth/auth.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
 import { TutorProfileModule } from './tutor-profile/tutor-profile.module';
 import { UploadModule } from './upload/upload.module';
+import { validate } from './config/env.validation';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, validate }),
     MongooseModule.forRootAsync({
       useFactory: (configService: ConfigService) => {
-        const uri = configService.get<string>('MONGODB_URI');
-        console.log('🔗 Connecting to MongoDB URI:', uri);
+        const uri = configService.getOrThrow<string>('MONGODB_URI');
+        console.log('🔗 Connecting to MongoDB...');
         return {
           uri,
           serverSelectionTimeoutMS: 5000,
