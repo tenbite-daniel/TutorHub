@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
 import { TutorProfileModule } from './tutor-profile/tutor-profile.module';
 import { UploadModule } from './upload/upload.module';
+import { HealthModule } from './health/health.module';
 import { validate } from './config/env.validation';
 
 @Module({
@@ -38,6 +39,7 @@ import { validate } from './config/env.validation';
     EnrollmentModule,
     TutorProfileModule,
     UploadModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [
