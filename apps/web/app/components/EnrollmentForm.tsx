@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../contexts/ToastContext";
 import { api, ApiError } from "../lib/api";
 
 interface Tutor {
@@ -21,6 +22,7 @@ interface EnrollmentFormProps {
 
 export default function EnrollmentForm({ tutor, onClose }: EnrollmentFormProps) {
   const { user } = useAuth();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     subject: "",
     grade: "",
@@ -41,13 +43,13 @@ export default function EnrollmentForm({ tutor, onClose }: EnrollmentFormProps) 
         studentId: user?.id || '',
         ...formData
       });
-      alert('Application submitted successfully! The tutor will review your request.');
+      toast.success('Application submitted successfully! The tutor will review your request.');
       onClose();
     } catch (error) {
       if (error instanceof ApiError) {
-        alert(`Failed to submit application: ${error.message}`);
+        toast.error(`Failed to submit application: ${error.message}`);
       } else {
-        alert('An error occurred. Please try again.');
+        toast.error('An error occurred. Please try again.');
       }
     } finally {
       setIsSubmitting(false);

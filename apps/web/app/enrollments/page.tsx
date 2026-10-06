@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../contexts/ToastContext";
 import { api, ApiError } from "../lib/api";
+import ConfirmationModal from "../components/ConfirmationModal";
 import { Clock, CheckCircle, XCircle, User, FileText } from "lucide-react";
 
 interface EnrollmentApplication {
@@ -28,11 +30,19 @@ interface EnrollmentApplication {
 
 export default function EnrollmentsPage() {
 	const { user } = useAuth();
+	const toast = useToast();
 	const [applications, setApplications] = useState<EnrollmentApplication[]>(
 		[]
 	);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState("");
+	const [actionModal, setActionModal] = useState<{
+		isOpen: boolean;
+		applicationId: string;
+		status: "accepted" | "rejected";
+		studentName: string;
+	} | null>(null);
+	const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
 	useEffect(() => {
 		if (user) {
@@ -66,18 +76,27 @@ export default function EnrollmentsPage() {
 		status: string,
 		response?: string
 	) => {
+		setIsUpdatingStatus(true);
 		try {
 			await api.enrollments.update(applicationId, {
 				status,
 				tutorResponse: response,
 			});
 			fetchApplications();
+			setActionModal(null);
+			toast.success(
+				status === "accepted"
+					? "Application accepted successfully!"
+					: "Application rejected."
+			);
 		} catch (err) {
 			if (err instanceof ApiError) {
-				alert(`Failed to update application: ${err.message}`);
+				toast.error(`Failed to update application: ${err.message}`);
 			} else {
-				alert("Failed to update application");
+				toast.error("Failed to update application");
 			}
+		} finally {
+			setIsUpdatingStatus(false);
 		}
 	};
 
@@ -308,31 +327,27 @@ export default function EnrollmentsPage() {
 									<div className="flex gap-2 pt-4 border-t">
 										<button
 											onClick={() => {
-												const response = prompt(
-													"Add a response (optional):"
-												);
-												handleStatusUpdate(
-													application._id,
-													"accepted",
-													response || undefined
-												);
+												setActionModal({
+													isOpen: true,
+													applicationId: application._id,
+													status: "accepted",
+													studentName: `${application.studentId?.firstName || ""} ${application.studentId?.lastName || ""}`.trim() || "the student",
+												});
 											}}
-											className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+											className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
 										>
 											Accept
 										</button>
 										<button
 											onClick={() => {
-												const response = prompt(
-													"Add a response (optional):"
-												);
-												handleStatusUpdate(
-													application._id,
-													"rejected",
-													response || undefined
-												);
+												setActionModal({
+													isOpen: true,
+													applicationId: application._id,
+													status: "rejected",
+													studentName: `${application.studentId?.firstName || ""} ${application.studentId?.lastName || ""}`.trim() || "the student",
+												});
 											}}
-											className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+											className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
 										>
 											Reject
 										</button>
@@ -348,6 +363,28 @@ export default function EnrollmentsPage() {
 						</div>
 					))}
 				</div>
+			)}
+
+			{actionModal && (
+				<ConfirmationModal
+					isOpen={actionModal.isOpen}
+					title={actionModal.status === "accepted" ? "Accept Application" : "Reject Application"}
+					message={
+						actionModal.status === "accepted"
+							? `Are you sure you want to accept the enrollment application from ${actionModal.studentName}?`
+							: `Are you sure you want to decline the enrollment application from ${actionModal.studentName}?`
+					}
+					confirmText={actionModal.status === "accepted" ? "Accept Application" : "Reject Application"}
+					variant={actionModal.status === "accepted" ? "success" : "danger"}
+					showInput={true}
+					inputLabel="Note for Student (Optional)"
+					inputPlaceholder="Add any schedule notes, instructions, or message for the student..."
+					isLoading={isUpdatingStatus}
+					onCancel={() => setActionModal(null)}
+					onConfirm={(responseNote) => {
+						handleStatusUpdate(actionModal.applicationId, actionModal.status, responseNote);
+					}}
+				/>
 			)}
 		</div>
 	);
