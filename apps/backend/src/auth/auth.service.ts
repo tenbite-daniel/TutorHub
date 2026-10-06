@@ -204,7 +204,7 @@ export class AuthService {
   async forgotPassword(
     forgotPasswordDto: ForgotPasswordDto,
   ): Promise<{ message: string }> {
-    const { email } = forgotPasswordDto;
+    const email = forgotPasswordDto.email.toLowerCase().trim();
 
     const user = await this.userModel.findOne({ email });
     if (!user) {
@@ -228,7 +228,8 @@ export class AuthService {
   }
 
   async verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<{ message: string }> {
-    const { email, otp } = verifyOtpDto;
+    const email = verifyOtpDto.email.toLowerCase().trim();
+    const { otp } = verifyOtpDto;
 
     const otpDoc = await this.otpModel.findOne({
       email,
@@ -246,7 +247,8 @@ export class AuthService {
   async resetPassword(
     resetPasswordDto: ResetPasswordDto,
   ): Promise<{ message: string }> {
-    const { email, password, confirmPassword } = resetPasswordDto;
+    const email = resetPasswordDto.email.toLowerCase().trim();
+    const { password, confirmPassword } = resetPasswordDto;
 
     if (password !== confirmPassword) {
       throw new BadRequestException('Passwords do not match');
