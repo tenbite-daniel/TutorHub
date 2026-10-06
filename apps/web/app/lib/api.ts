@@ -92,7 +92,14 @@ async function apiRequest<T>(
 		...options,
 	};
 
-	const response = await fetch(url, config);
+	let response: Response;
+	try {
+		response = await fetch(url, config);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Network error";
+		console.error(`Network Error: ${message} - ${url}`);
+		throw new ApiError(0, `Unable to reach backend server (${url}). Please check if the backend is running.`);
+	}
 
 	if (!response.ok) {
 		const errorData = await response
@@ -102,8 +109,6 @@ async function apiRequest<T>(
 		const errorMessage = errorData?.message || response.statusText || "Request failed";
 		
 		console.error(`API Error [${response.status}]: ${errorMessage} - ${url}`);
-		console.error('Request headers:', config.headers);
-		console.error('Cookies:', document.cookie);
 		
 		throw new ApiError(response.status, errorMessage);
 	}

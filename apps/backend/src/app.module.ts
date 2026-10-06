@@ -16,11 +16,13 @@ import { UploadModule } from './upload/upload.module';
     MongooseModule.forRootAsync({
       useFactory: (configService: ConfigService) => {
         const uri = configService.get<string>('MONGODB_URI');
-        console.log('✅ Loaded MongoDB URI:', uri); // 👈 Debug log
+        console.log('🔗 Connecting to MongoDB URI:', uri);
         return {
           uri,
+          serverSelectionTimeoutMS: 5000,
           onConnectionCreate: (connection) => {
-            console.log('✅ MongoDB connected!');
+            connection.on('connected', () => console.log('✅ MongoDB connected successfully!'));
+            connection.on('error', (err: any) => console.error('❌ MongoDB connection error:', err.message));
             return connection;
           },
         };

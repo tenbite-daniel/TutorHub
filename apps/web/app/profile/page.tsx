@@ -59,7 +59,6 @@ export default function ProfilePage() {
 
 			if (response.ok) {
 				const data = await response.json();
-				console.log("Profile data received:", data); // Debug log
 				setProfileData({
 					firstName: data.user.firstName || "",
 					lastName: data.user.lastName || "",
