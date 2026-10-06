@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { api, API_BASE_URL } from "../../lib/api";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const { login } = useAuth();
+	const toast = useToast();
 	const router = useRouter();
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -25,6 +29,7 @@ export default function LoginPage() {
 
 			const { user } = response;
 			login(user);
+			toast.success(`Welcome back, ${user.firstName}!`);
 
 			if (user.role === "student") {
 				router.push("/dashboard/student");
@@ -36,7 +41,7 @@ export default function LoginPage() {
 				router.push("/dashboard");
 			}
 		} catch (error: any) {
-			alert(error.response?.data?.message || "Login failed");
+			toast.error(error.message || error.response?.data?.message || "Login failed");
 		} finally {
 			setIsLoading(false);
 		}
@@ -62,14 +67,28 @@ export default function LoginPage() {
 						/>
 					</div>
 					<div>
-						<input
-							type="password"
-							required
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							className="w-full px-3 py-2 border border-gray-300 rounded-md"
-							placeholder="Password"
-						/>
+						<div className="relative">
+							<input
+								type={showPassword ? "text" : "password"}
+								required
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+								placeholder="Password"
+							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword(!showPassword)}
+								className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+								aria-label={showPassword ? "Hide password" : "Show password"}
+							>
+								{showPassword ? (
+									<EyeOff className="w-5 h-5" />
+								) : (
+									<Eye className="w-5 h-5" />
+								)}
+							</button>
+						</div>
 						<div className="text-right mt-2">
 							<Link
 								href="/auth/forgot-password"

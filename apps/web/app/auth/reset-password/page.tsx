@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { api, ApiError } from "../../lib/api";
 
 function ResetPasswordForm() {
@@ -112,10 +113,15 @@ function ResetPasswordForm() {
 							/>
 							<button
 								type="button"
-								className="absolute inset-y-0 right-0 pr-3 flex items-center"
+								className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
 								onClick={() => setShowPassword(!showPassword)}
+								aria-label={showPassword ? "Hide password" : "Show password"}
 							>
-								{showPassword ? "👁️" : "👁️‍🗨️"}
+								{showPassword ? (
+									<EyeOff className="w-5 h-5" />
+								) : (
+									<Eye className="w-5 h-5" />
+								)}
 							</button>
 						</div>
 					</div>
@@ -142,12 +148,17 @@ function ResetPasswordForm() {
 							/>
 							<button
 								type="button"
-								className="absolute inset-y-0 right-0 pr-3 flex items-center"
+								className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
 								onClick={() =>
 									setShowConfirmPassword(!showConfirmPassword)
 								}
+								aria-label={showConfirmPassword ? "Hide password" : "Show password"}
 							>
-								{showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+								{showConfirmPassword ? (
+									<EyeOff className="w-5 h-5" />
+								) : (
+									<Eye className="w-5 h-5" />
+								)}
 							</button>
 						</div>
 					</div>
