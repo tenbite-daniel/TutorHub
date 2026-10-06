@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
+import { API_BASE_URL } from "../lib/api";
 import { User, Edit2, Save, X } from "lucide-react";
 
 interface ProfileData {
@@ -48,7 +49,7 @@ export default function ProfilePage() {
 	const fetchProfile = async () => {
 		try {
 			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`,
+				`${API_BASE_URL}/auth/me`,
 				{
 					credentials: "include",
 					headers: {
@@ -91,7 +92,7 @@ export default function ProfilePage() {
 		setIsLoading(true);
 		try {
 			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/profile`,
+				`${API_BASE_URL}/auth/profile`,
 				{
 					method: "PUT",
 					headers: {

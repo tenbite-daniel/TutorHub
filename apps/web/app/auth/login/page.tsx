@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "../../lib/api";
+import { api, API_BASE_URL } from "../../lib/api";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function LoginPage() {
@@ -101,7 +101,7 @@ export default function LoginPage() {
 					<button
 						type="button"
 						onClick={() =>
-							(window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"}/auth/google`)
+							(window.location.href = `${API_BASE_URL}/auth/google`)
 						}
 						className="w-full flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
 					>

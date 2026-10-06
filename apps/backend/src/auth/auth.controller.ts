@@ -182,7 +182,11 @@ export class AuthController {
     this.setAuthCookies(res, accessToken, refreshToken);
     
     // Redirect to frontend dashboard
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const frontendUrls =
+      this.configService.get<string>('FRONTEND_URL')?.split(',') || [
+        'http://localhost:3000',
+      ];
+    const frontendUrl = frontendUrls[0].trim();
     res.redirect(`${frontendUrl}/dashboard/${user.role}`);
   }
 
@@ -197,7 +201,7 @@ export class AuthController {
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? ('none' as const) : ('lax' as const),
+      sameSite: 'lax' as const,
       path: '/',
       signed: true, // Sign cookies for additional security
     };
@@ -220,7 +224,7 @@ export class AuthController {
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? ('none' as const) : ('lax' as const),
+      sameSite: 'lax' as const,
       path: '/',
       signed: true,
     };
