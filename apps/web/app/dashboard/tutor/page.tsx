@@ -19,20 +19,16 @@ export default function TutorDashboard() {
 
 	// Function to refresh dashboard data
 	const refreshDashboard = async () => {
-		if (!user?.id) return;
+		if (!user?.id || user.role !== "tutor") return;
 		setLoading(true);
 		try {
 			const profile = await api.tutorProfile.get() as any;
 			setHasProfile(!!profile);
 		} catch (error: any) {
-			if (error.status === 404) {
+			if (error?.status === 404) {
 				setHasProfile(false);
 			} else {
-				console.error('Profile refresh error:', {
-					status: error.status,
-					message: error.message,
-					type: 'profile_refresh'
-				});
+				console.error('Profile refresh error:', error?.message || error);
 				setHasProfile(false);
 			}
 		} finally {
@@ -41,6 +37,14 @@ export default function TutorDashboard() {
 	};
 
 	useEffect(() => {
+		if (!user) return;
+
+		// Redirect non-tutors to their respective dashboard
+		if (user.role !== "tutor") {
+			router.push(`/dashboard/${user.role}`);
+			return;
+		}
+
 		const fetchDashboardData = async () => {
 			if (!user?.id) return;
 
@@ -50,7 +54,7 @@ export default function TutorDashboard() {
 				setHasProfile(!!profile);
 
 				// Fetch enrollment applications for this tutor using user ID
-				if (user?.id) {
+				try {
 					const enrollments = (await api.enrollments.getByTutor(
 						user.id
 					)) as any;
@@ -67,16 +71,19 @@ export default function TutorDashboard() {
 							enrollments?.applications?.length || 0,
 						totalReviews: 0,
 					});
+				} catch {
+					// No enrollments yet or empty list
+					setStats({
+						totalStudents: 0,
+						appointmentsReceived: 0,
+						totalReviews: 0,
+					});
 				}
 			} catch (error: any) {
-				if (error.status === 404) {
+				if (error?.status === 404) {
 					setHasProfile(false);
 				} else {
-					console.error('Dashboard fetch error:', {
-						status: error.status,
-						message: error.message,
-						type: 'profile_fetch'
-					});
+					console.error('Dashboard fetch error:', error?.message || error);
 					setHasProfile(false);
 				}
 			} finally {
@@ -85,7 +92,7 @@ export default function TutorDashboard() {
 		};
 
 		fetchDashboardData();
-	}, [user]);
+	}, [user, router]);
 
 	// Listen for focus events to refresh when returning to the page
 	useEffect(() => {
@@ -117,7 +124,7 @@ export default function TutorDashboard() {
 					{hasProfile === false && (
 						<button
 							onClick={() =>
-								router.push("/dashboard/tutor/profile")
+								router.push("/profile")
 							}
 							className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
 						>
@@ -127,7 +134,7 @@ export default function TutorDashboard() {
 					{hasProfile === true && (
 						<button
 							onClick={() =>
-								router.push("/dashboard/tutor/profile")
+								router.push("/profile")
 							}
 							className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors"
 						>

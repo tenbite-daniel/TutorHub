@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
 import { api } from "../../lib/api";
 
 export default function StudentDashboard() {
+	const router = useRouter();
 	const { user } = useAuth();
 	const [stats, setStats] = useState({
 		totalTutors: 0,
@@ -40,8 +42,13 @@ export default function StudentDashboard() {
 	};
 
 	useEffect(() => {
+		if (!user) return;
+		if (user.role !== "student") {
+			router.push(`/dashboard/${user.role}`);
+			return;
+		}
 		fetchDashboardData();
-	}, [user]);
+	}, [user, router]);
 
 	// Listen for focus events to refresh when returning to the page
 	useEffect(() => {
