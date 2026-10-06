@@ -17,7 +17,11 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/enums/user-role.enum';
+import { ApiTags, ApiBearerAuth, ApiCookieAuth } from '@nestjs/swagger';
 
+@ApiTags('Enrollment Applications')
+@ApiBearerAuth()
+@ApiCookieAuth('access_token')
 @Controller('enrollment-applications')
 @UseGuards(JwtAuthGuard)
 export class EnrollmentController {

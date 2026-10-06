@@ -5,6 +5,8 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
@@ -16,14 +18,14 @@ async function bootstrap() {
   // Security middleware
   app.use(helmet({
     crossOriginEmbedderPolicy: false,
-    contentSecurityPolicy: {
+    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
       directives: {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
         imgSrc: ["'self'", 'data:', 'https:'],
       },
-    },
+    } : false,
   }));
 
   app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -48,7 +50,20 @@ async function bootstrap() {
     exposedHeaders: ['Set-Cookie'],
   });
 
+  // Swagger API Documentation (Development only)
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('TutorHub API')
+      .setDescription('TutorHub - Ethiopia Backend API Documentation')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .addCookieAuth('access_token')
+      .build();
 
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+    console.log(`Swagger documentation available at http://localhost:${process.env.PORT || 5000}/api/docs`);
+  }
 
   await app.listen(process.env.PORT || 5000);
   console.log(`Backend running on port ${process.env.PORT || 5000}`);

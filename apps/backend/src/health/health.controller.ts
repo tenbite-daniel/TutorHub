@@ -5,7 +5,9 @@ import {
   MongooseHealthIndicator,
 } from '@nestjs/terminus';
 import { SkipThrottle } from '@nestjs/throttler';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Health')
 @Controller('health')
 @SkipThrottle()
 export class HealthController {

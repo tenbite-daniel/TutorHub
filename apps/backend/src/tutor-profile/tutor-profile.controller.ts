@@ -18,7 +18,9 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/enums/user-role.enum';
 import { UploadService } from '../upload/upload.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Tutor Profile')
 @Controller('tutor-profile')
 export class TutorProfileController {
   constructor(
