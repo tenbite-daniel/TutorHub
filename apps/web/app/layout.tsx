@@ -6,6 +6,7 @@ import Footer from "./components/Footer";
 import DashboardLayout from "./components/DashboardLayout";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SidebarProvider } from "./contexts/SidebarContext";
+import { ToastProvider } from "./contexts/ToastContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -30,13 +31,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
         <AuthProvider>
-          <SidebarProvider>
-            <Header />
-            <DashboardLayout>
-              {children}
-            </DashboardLayout>
-            <Footer />
-          </SidebarProvider>
+          <ToastProvider>
+            <SidebarProvider>
+              <Header />
+              <DashboardLayout>
+                {children}
+              </DashboardLayout>
+              <Footer />
+            </SidebarProvider>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>
